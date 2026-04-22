@@ -3,43 +3,99 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:5000/api/overtime';
 
-export const getMyRequests = createAsyncThunk('overtime/getAll', async (_, thunkAPI) => {
+// Fetch all employees with grouped requests
+export const fetchEmployees = createAsyncThunk('overtime/fetchEmployees', async (_, thunkAPI) => {
     try {
-        const response = await axios.get(`${API_URL}/my-requests`, {
-            withCredentials: true,
-        });
-        return response.data;
+        const res = await axios.get(`${API_URL}/employees`, { withCredentials: true });
+        return res.data;
     } catch (error) {
         return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
     }
 });
 
+// Approve request
+export const approveRequest = createAsyncThunk('overtime/approveRequest', async (reqId, thunkAPI) => {
+    try {
+        await axios.put(`${API_URL}/${reqId}/process`, { action: 'approve' }, { withCredentials: true });
+        return reqId;
+    } catch (error) {
+        return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
+    }
+});
+
+// Reject request
+export const rejectRequest = createAsyncThunk('overtime/rejectRequest', async (reqId, thunkAPI) => {
+    try {
+        await axios.put(`${API_URL}/${reqId}/process`, { action: 'reject' }, { withCredentials: true });
+        return reqId;
+    } catch (error) {
+        return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
+    }
+});
+
+const initialState = {
+    employees: [],
+    isLoading: false,
+    isError: false,
+    isSuccess: false,
+    message: '',
+};
+
 const overtimeSlice = createSlice({
     name: 'overtime',
-    initialState: { requests: [], isError: false, isSuccess: false, isLoading: false, message: '' },
+    initialState,
     reducers: {
         reset: (state) => {
             state.isError = false;
             state.isSuccess = false;
             state.isLoading = false;
             state.message = '';
-        }
+        },
     },
     extraReducers: (builder) => {
         builder
-            .addCase(getMyRequests.pending, (state) => { state.isLoading = true; })
-            .addCase(getMyRequests.fulfilled, (state, action) => {
+            .addCase(fetchEmployees.pending, (state) => {
+                state.isLoading = true;
+            })
+            .addCase(fetchEmployees.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.isSuccess = true;
-                state.requests = action.payload;
+                state.employees = action.payload;
             })
-            .addCase(getMyRequests.rejected, (state, action) => {
+            .addCase(fetchEmployees.rejected, (state, action) => {
                 state.isLoading = false;
                 state.isError = true;
                 state.message = action.payload;
+            })
+            .addCase(approveRequest.fulfilled, (state, action) => {
+                // Remove approved request from employee's requests
+                const reqId = action.payload;
+                state.employees.forEach(emp => {
+                    emp.requests = emp.requests.map(r => r.id === reqId ? { ...r, status: 'approved' } : r);
+                });
+            })
+            .addCase(rejectRequest.fulfilled, (state, action) => {
+                // Remove rejected request from employee's requests
+                const reqId = action.payload;
+                state.employees.forEach(emp => {
+                    emp.requests = emp.requests.map(r => r.id === reqId ? { ...r, status: 'rejected' } : r);
+                });
             });
-    }
+    },
 });
+
+// Selectors
+export const selectEmployees = (state) => {
+    // Sort: new requests first, then by latest activity
+    const emps = [...state.overtime.employees];
+    emps.sort((a, b) => {
+        if (a.hasNewRequest && !b.hasNewRequest) return -1;
+        if (!a.hasNewRequest && b.hasNewRequest) return 1;
+        return new Date(b.lastActivity) - new Date(a.lastActivity);
+    });
+    return emps;
+};
+export const selectLoading = (state) => state.overtime.isLoading;
 
 export const { reset } = overtimeSlice.actions;
 export default overtimeSlice.reducer;

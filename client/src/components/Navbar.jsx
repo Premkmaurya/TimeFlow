@@ -2,11 +2,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout, reset } from "../features/auth/authSlice";
 import { Clock, Bell } from "lucide-react";
+import { selectUnreadCount } from "../features/notifications/notificationSlice";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const unreadCount = useSelector(selectUnreadCount);
 
   const onLogout = () => {
     dispatch(logout());
@@ -26,6 +28,19 @@ const Navbar = () => {
         </Link>
 
         <div className="flex items-center gap-6 font-medium">
+          {/* Notification Bell */}
+          {user && (
+            <div className="relative">
+              <button className="relative p-2 rounded-full hover:bg-slate-100 transition">
+                <Bell className="w-6 h-6 text-slate-500" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 animate-pulse shadow">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+            </div>
+          )}
           {user ? (
             <>
               <span className="text-slate-600">Hi, {user.firstName}</span>

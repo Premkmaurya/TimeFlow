@@ -41,5 +41,9 @@ const notificationSlice = createSlice({
     }
 });
 
+// Selector for unread count (assuming notification object has 'read' boolean)
+export const selectUnreadCount = (state) =>
+    state.notifications.notifications.filter((n) => !n.read).length;
+
 export const { reset } = notificationSlice.actions;
 export default notificationSlice.reducer;

@@ -142,9 +142,36 @@ const processRequest = async (req, res) => {
   }
 };
 
+// Fetch all Employees with their overtime stats (for Authority)
+const getAllEmployees = async (req, res) => {
+  try {
+    const employees = await User.find({ role: "employee" }).select("firstName lastName email");
+    const employeeData = await Promise.all(
+      employees.map(async (emp) => {
+        const requests = await OvertimeRequest.find({ user: emp._id });
+        const totalOvertimeHours = requests.reduce((sum, r) => sum + r.hours, 0);
+        const hasNewRequest = requests.some(r => r.status === "pending");
+        const status = requests.length > 0 ? requests[requests.length - 1].status : "none";
+        return {
+          id: emp._id,
+          name: `${emp.firstName} ${emp.lastName}`,
+          email: emp.email,
+          totalOvertimeHours,
+          hasNewRequest,
+          status,
+        };
+      }),
+    );
+    res.status(200).json(employeeData);
+  } catch (err)
+  {    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
 module.exports = {
   createOvertimeRequest,
   getMyRequests,
   getPendingRequests,
   processRequest,
+  getAllEmployees,
 };

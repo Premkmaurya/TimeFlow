@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useSelector, useDispatch } from "react-redux";
-import { getMyRequests, reset } from "../features/overtime/overtimeSlice";
+import { fetchEmployees, reset } from "../features/overtime/overtimeSlice";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { Clock, Plus, CheckCircle, Clock3, XCircle, AlertCircle } from "lucide-react";
@@ -9,13 +9,18 @@ import { Clock, Plus, CheckCircle, Clock3, XCircle, AlertCircle } from "lucide-r
 const Dashboard = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
-  const { requests, isLoading } = useSelector((state) => state.overtime);
+  const employees = useSelector((state) => state.overtime.employees);
+  const isLoading = useSelector((state) => state.overtime.isLoading);
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // For employee dashboard, show only current user's requests
+  const userRequests = employees
+    .find((emp) => emp.email === user?.email)?.requests || [];
+
   // Calculate total approved overtime hours
-  const totalApprovedOvertime = requests
-    ? requests.filter((req) => req.status === "approved").reduce((sum, req) => sum + Number(req.hours), 0)
+  const totalApprovedOvertime = userRequests
+    ? userRequests.filter((req) => req.status === "approved").reduce((sum, req) => sum + Number(req.hours), 0)
     : 0;
 
   const {
@@ -32,7 +37,7 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    if (user) dispatch(getMyRequests());
+    if (user) dispatch(fetchEmployees());
     return () => {
       dispatch(reset());
     };
@@ -47,7 +52,7 @@ const Dashboard = () => {
       });
       setShowForm(false);
       resetForm();
-      dispatch(getMyRequests());
+      dispatch(fetchEmployees());
     } catch (err) {
       console.error(err);
       alert(err.response?.data?.message || "Error submitting request");
@@ -212,7 +217,7 @@ const Dashboard = () => {
           <div className="p-8 text-center text-slate-500">
             Loading your requests...
           </div>
-        ) : requests.length > 0 ? (
+        ) : userRequests.length > 0 ? (
           <table className="w-full text-left">
             <thead className="bg-slate-50/80 border-b border-slate-200">
               <tr>
@@ -229,7 +234,7 @@ const Dashboard = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white/50">
-              {requests.map((req) => (
+              {userRequests.map((req) => (
                 <tr
                   key={req.id}
                   className="hover:bg-slate-50/50 transition-colors"
