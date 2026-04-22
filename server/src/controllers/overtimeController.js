@@ -41,7 +41,7 @@ const getMyRequests = async (req, res) => {
     try {
         const requests = await OvertimeRequest.find({ user: req.user.id })
             .sort({ createdAt: -1 })
-            .populate('user', 'firstName lastName email')
+            .populate('user')
             .populate('manager', 'firstName lastName')
             .populate('hr', 'firstName lastName');
         
@@ -54,15 +54,26 @@ const getMyRequests = async (req, res) => {
 // Get pending requests (Authority)
 const getPendingRequests = async (req, res) => {
     try {
-        // Based on Dual-Approval spec, a manager sees pending, HR sees manager_approved
-        const requests = await OvertimeRequest.find({
-            status: { $in: ['pending', 'manager_approved', 'hr_approved'] }
-        })
-        .sort({ createdAt: 1 })
-        .populate('user', 'firstName lastName email')
-        .populate('manager', 'firstName lastName')
-        .populate('hr', 'firstName lastName');
-        
+        // Only show requests that the current user (manager or hr) has not already approved
+        let filter = {};
+        if (req.user.role === 'authority' || req.user.role === 'manager') {
+            // Show only requests that are pending and not already approved by this manager
+            filter = {
+                status: 'pending',
+                manager: { $exists: false }
+            };
+        } else if (req.user.role === 'hr') {
+            // Show only requests that are manager_approved and not already approved by this HR
+            filter = {
+                status: 'manager_approved',
+                hr: { $exists: false }
+            };
+        }
+        const requests = await OvertimeRequest.find(filter)
+            .sort({ createdAt: 1 })
+            .populate('user', 'firstName lastName email')
+            .populate('manager', 'firstName lastName')
+            .populate('hr', 'firstName lastName');
         res.status(200).json(requests);
     } catch (err) {
         res.status(500).json({ message: 'Server error', error: err.message });

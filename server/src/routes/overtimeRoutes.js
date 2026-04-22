@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.post('/', authenticateToken, authorizeRoles('employee'), createOvertimeRequest);
 router.get('/my-requests', authenticateToken, authorizeRoles('employee'), getMyRequests);
-router.get('/pending', authenticateToken, authorizeRoles('authority', 'admin'), getPendingRequests);
-router.put('/:id/process', authenticateToken, authorizeRoles('authority', 'admin'), processRequest);
+router.get('/pending', authenticateToken, authorizeRoles('manager','hr','admin'), getPendingRequests);
+router.put('/:id/process', authenticateToken, authorizeRoles('manager','hr','admin'), processRequest);
 
 module.exports = router;

@@ -115,20 +115,6 @@ const Register = () => {
               className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Role
-            </label>
-            <select
-              name="role"
-              value={role}
-              onChange={onChange}
-              className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
-            >
-              <option value="employee">Employee</option>
-              <option value="authority">Authority (Manager/HR)</option>
-            </select>
-          </div>
           <button
             type="submit"
             disabled={loading}
