@@ -1,7 +1,20 @@
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { getMe } from '../features/auth/authSlice';
 import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar';
 
+
 const Layout = () => {
+    const dispatch = useDispatch();
+    const user = useSelector((state) => state.user);
+
+    useEffect(() => {
+        if (!user) {
+            dispatch(getMe());
+        }
+    }, [dispatch]);
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-sky-50 text-slate-800">
             <Navbar />

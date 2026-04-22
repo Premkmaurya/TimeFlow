@@ -1,9 +1,12 @@
-const { pool } = require('../config/db');
+const Notification = require('../models/notification.model');
 
 const getMyNotifications = async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC', [req.user.id]);
-        res.status(200).json(result.rows);
+        const notifications = await Notification.find({ user: req.user.id })
+            .sort({ createdAt: -1 })
+            .populate('user', 'firstName lastName email');
+        
+        res.status(200).json(notifications);
     } catch (err) {
         res.status(500).json({ message: 'Server error', error: err.message });
     }
@@ -12,8 +15,22 @@ const getMyNotifications = async (req, res) => {
 const markAsRead = async (req, res) => {
     const { id } = req.params;
     try {
-        await pool.query('UPDATE notifications SET is_read = TRUE WHERE id = $1 AND user_id = $2', [id, req.user.id]);
-        res.status(200).json({ message: 'Notification marked as read' });
+        const notification = await Notification.findByIdAndUpdate(
+            id,
+            { isRead: true },
+            { new: true }
+        );
+
+        if (!notification) {
+            return res.status(404).json({ message: 'Notification not found' });
+        }
+
+        // Verify ownership
+        if (notification.user.toString() !== req.user.id) {
+            return res.status(403).json({ message: 'You do not have permission to update this notification' });
+        }
+
+        res.status(200).json({ message: 'Notification marked as read', notification });
     } catch (err) {
         res.status(500).json({ message: 'Server error', error: err.message });
     }

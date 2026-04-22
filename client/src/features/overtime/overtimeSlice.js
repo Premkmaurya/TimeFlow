@@ -5,9 +5,9 @@ const API_URL = 'http://localhost:5000/api/overtime';
 
 export const getMyRequests = createAsyncThunk('overtime/getAll', async (_, thunkAPI) => {
     try {
-        const token = thunkAPI.getState().auth.user.token;
-        const config = { headers: { Authorization: `Bearer ${token}` } };
-        const response = await axios.get(`${API_URL}/my-requests`, config);
+        const response = await axios.get(`${API_URL}/my-requests`, {
+            withCredentials: true,
+        });
         return response.data;
     } catch (error) {
         return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);

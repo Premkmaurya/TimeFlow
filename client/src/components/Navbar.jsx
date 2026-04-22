@@ -31,7 +31,7 @@ const Navbar = () => {
                                     3
                                 </span>
                             </div>
-                            <span className="text-slate-600">Hi, {user.first_name}</span>
+                            <span className="text-slate-600">Hi, {user.firstName}</span>
                             <button className="px-4 py-2 rounded-lg bg-white shadow-sm border border-slate-100 text-indigo-600 hover:bg-slate-50 font-semibold transition-smooth" onClick={onLogout}>
                                 Logout
                             </button>

@@ -1,0 +1,167 @@
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Mail, Send, Loader2 } from 'lucide-react';
+
+const Contact = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    // Simulate form submission
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    setIsSubmitting(false);
+    setFormData({ name: '', email: '', message: '' });
+    alert('Thank you for your message! We\'ll get back to you soon.');
+  };
+
+  return (
+    <div className="min-h-screen">
+      {/* Header Section */}
+      <section className="bg-gradient-to-br from-blue-50 to-white py-20">
+        <div className="container mx-auto px-4 max-w-4xl text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              Contact Us
+            </h1>
+            <p className="text-xl text-gray-600">
+              We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Contact Form Section */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4 max-w-2xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    placeholder="Your full name"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    placeholder="your.email@example.com"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+                    Message
+                  </label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    required
+                    rows={6}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+                    placeholder="Tell us how we can help you..."
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5" />
+                      Send Message
+                    </>
+                  )}
+                </button>
+              </form>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Contact Info Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <motion.div
+            className="text-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-6">
+              <Mail className="w-8 h-8 text-blue-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Get in Touch
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Prefer to reach out directly? Send us an email and we'll get back to you within 24 hours.
+            </p>
+            <a
+              href="mailto:hello@timeflow.com"
+              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-lg transition-colors"
+            >
+              <Mail className="w-5 h-5" />
+              hello@timeflow.com
+            </a>
+          </motion.div>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+export default Contact;
