@@ -13,6 +13,11 @@ const Dashboard = () => {
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Calculate total approved overtime hours
+  const totalApprovedOvertime = requests
+    ? requests.filter((req) => req.status === "approved").reduce((sum, req) => sum + Number(req.hours), 0)
+    : 0;
+
   const {
     register,
     handleSubmit,
@@ -73,6 +78,9 @@ const Dashboard = () => {
           <p className="text-slate-500">
             Track and submit your extra hours worked.
           </p>
+          <div className="mt-2 text-indigo-700 font-semibold text-lg">
+            Total Approved Overtime: {totalApprovedOvertime}h
+          </div>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
