@@ -7,6 +7,8 @@ import {
   Clock, Plus, CheckCircle, XCircle, Clock3,
   LayoutDashboard, ListOrdered, LogOut, ChevronRight,
   TrendingUp, AlertCircle, Inbox, User,
+  Menu,
+  X,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { logout, reset as authReset } from "../features/auth/authSlice";
@@ -81,6 +83,7 @@ export default function Dashboard() {
   const [activeNav, setActiveNav] = useState("overview");
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   /* ── fetchRequest returns a flat array of the current user's requests ── */
   const userRequests = Array.isArray(employees) ? employees : [];
@@ -172,8 +175,15 @@ export default function Dashboard() {
       minHeight: "100vh",
     }}>
 
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div onClick={() => setSidebarOpen(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 19 }}
+        />
+      )}
+
       {/* ── SIDEBAR ─────────────────────────────── */}
-      <aside style={{
+      <aside className={`dash-sidebar${sidebarOpen ? ' dash-sidebar--open' : ''}`} style={{
         width: 240,
         flexShrink: 0,
         background: S.surfaceLowest,
@@ -185,7 +195,7 @@ export default function Dashboard() {
         top: 0,
         height: "100vh",
         boxSizing: "border-box",
-        zIndex: 10,
+        zIndex: 20,
       }}>
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 8px", marginBottom: 32 }}>
@@ -281,7 +291,26 @@ export default function Dashboard() {
       </aside>
 
       {/* ── MAIN CONTENT ────────────────────────── */}
-      <main style={{ flex: 1, padding: "32px 36px", overflowY: "auto" }}>
+      <main className={`dash-main${sidebarOpen ? ' dash-main--shifted' : ''}`} style={{
+        flex: 1, padding: "32px 36px", overflowY: "auto",
+        transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1)',
+      }}>
+
+        {/* Mobile top bar */}
+        <div className="dash-mobile-topbar" style={{ display: 'none', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <button onClick={() => setSidebarOpen(v => !v)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, fontWeight: 700, color: S.onSurface, fontFamily: S.font }}
+          >
+            <svg viewBox="0 0 28 28" fill="none" width="22" height="22"><circle cx="14" cy="14" r="8" stroke={S.primary} strokeWidth="2.5" fill="none"/><path d="M14 8v6l4 2" stroke={S.primary} strokeWidth="2.5" strokeLinecap="round"/></svg>
+            TimeFlow
+            TimeFlow
+          </button>
+          <button onClick={() => setSidebarOpen(v => !v)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: S.onSurface, padding: 4, display: 'flex', alignItems: 'center' }}
+          >
+            {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
 
         {/* ── Top header ── */}
         <motion.div
@@ -329,7 +358,7 @@ export default function Dashboard() {
         </motion.div>
 
         {/* ── Stat cards ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
+        <div className="dash-stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
           {stats.map((s, i) => {
             const Icon = s.icon;
             return (
@@ -415,7 +444,8 @@ export default function Dashboard() {
               <p style={{ margin: 0, fontSize: 14 }}>Loading your requests…</p>
             </div>
           ) : (activeNav === "overview" ? recentRequests : userRequests).length > 0 ? (
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 500 }}>
               <thead>
                 <tr style={{ background: S.surfaceContainerLow }}>
                   {["Date", "Hours", "Reason", "Status"].map((col) => (
@@ -475,6 +505,7 @@ export default function Dashboard() {
                 })}
               </tbody>
             </table>
+          </div>
           ) : (
             <div style={{ padding: "60px 24px", textAlign: "center" }}>
               <div style={{
@@ -513,6 +544,32 @@ export default function Dashboard() {
         onSubmit={onSubmitOvertime}
         isSubmitting={isSubmitting}
       />
+      <style>{`
+        @media (max-width: 900px) {
+          .dash-sidebar {
+            position: fixed !important;
+            left: -260px;
+            top: 0;
+            height: 100vh;
+            transition: left 0.28s cubic-bezier(0.4,0,0.2,1);
+            box-shadow: 4px 0 24px rgba(0,0,0,0.10);
+          }
+          .dash-sidebar--open {
+            left: 0 !important;
+          }
+          .dash-mobile-topbar { display: flex !important; }
+          .dash-main { padding: 16px 16px 80px !important; }
+          .dash-main--shifted {
+            transform: translateX(240px);
+          }
+        }
+        @media (max-width: 700px) {
+          .dash-stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+        @media (max-width: 420px) {
+          .dash-stat-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   );
 }

@@ -177,7 +177,7 @@ export default function Home() {
                 <div style={{ flex: 1, height: 8, background: '#ecedf7', borderRadius: 4, marginLeft: 12 }} />
               </div>
               {/* mock stat row */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 16, marginBottom: 24 }}>
                 {['Pending', 'Approved', 'Rejected', 'Total Hours'].map((label, i) => (
                   <div key={i} style={{ background: '#f2f3fd', borderRadius: 12, padding: '16px 20px' }}>
                     <div style={{ fontSize: 11, color: '#727785', fontWeight: 500, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</div>

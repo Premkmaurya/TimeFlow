@@ -89,7 +89,7 @@ export default function About() {
 
       {/* ── MISSION STATEMENT ──────────────────────── */}
       <section style={{ padding: '80px 24px', background: '#ffffff' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 64, alignItems: 'center' }}>
+        <div className="about-mission-grid" style={{ maxWidth: 1280, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 64, alignItems: 'center' }}>
           <motion.div
             initial="hidden"
             whileInView="show"
@@ -118,6 +118,7 @@ export default function About() {
             viewport={{ once: true }}
             variants={fadeUp}
             custom={1}
+            className="about-values-grid"
             style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}
           >
             {values.map((v, i) => (
@@ -286,6 +287,14 @@ export default function About() {
         </div>
       </section>
 
+      <style>{`
+        @media (max-width: 900px) {
+          .about-mission-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
+        }
+        @media (max-width: 600px) {
+          .about-values-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
       <Footer />
     </div>
   );

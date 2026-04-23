@@ -166,6 +166,7 @@ export default function Contact() {
               padding: '48px 40px',
               boxShadow: '0 8px 48px rgba(0,0,0,0.07)',
             }}
+            className="contact-form-card"
           >
             <h2 style={{ fontSize: 22, fontWeight: 700, color: '#191b23', letterSpacing: '-0.01em', marginBottom: 8 }}>Send a Message</h2>
             <p style={{ fontSize: 14, color: '#727785', marginBottom: 36 }}>Fill in the form below and our team will respond within one business day.</p>
@@ -203,7 +204,7 @@ export default function Contact() {
                   style={{ display: 'flex', flexDirection: 'column', gap: 24 }}
                 >
                   {/* name + email row */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <div className="contact-form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                     <div>
                       <label style={labelStyle}>Full Name</label>
                       <input
@@ -305,7 +306,7 @@ export default function Contact() {
 
       {/* ── BOTTOM INFO ROW ──────────────────────── */}
       <section style={{ padding: '0 24px 80px' }}>
-        <div style={{ maxWidth: 720, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+        <div className="contact-info-grid" style={{ maxWidth: 720, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
           {[
             { icon: Phone, label: 'Response Time', value: 'Within 4 hours', sub: 'Mon – Fri, 9am – 6pm IST' },
             { icon: Mail, label: 'General Enquiries', value: 'hello@timeflow.com', sub: 'For non-urgent questions' },
@@ -345,7 +346,14 @@ export default function Contact() {
       </section>
 
       {/* spinner keyframe */}
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 640px) {
+          .contact-form-card { padding: 32px 20px !important; }
+          .contact-form-row { grid-template-columns: 1fr !important; }
+          .contact-info-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
 
       <Footer />
     </div>

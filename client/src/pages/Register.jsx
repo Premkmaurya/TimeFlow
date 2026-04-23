@@ -260,7 +260,7 @@ export default function Register() {
           <form onSubmit={onSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
 
             {/* First + Last name row */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            <div className="reg-form-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
               <div>
                 <label style={labelStyle}>First Name</label>
                 <input
@@ -341,7 +341,7 @@ export default function Register() {
             {/* Role selector */}
             <div>
               <label style={labelStyle}>Account type</label>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div className="reg-role-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 {[
                   { value: "employee", label: "Employee", desc: "Submit & track overtime" },
                   { value: "authority", label: "Authority", desc: "Review & approve requests" },
@@ -421,6 +421,9 @@ export default function Register() {
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         @media (min-width: 900px) {
           .register-left-panel { display: flex !important; }
+        }
+        @media (max-width: 480px) {
+          .reg-form-row, .reg-role-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
     </div>

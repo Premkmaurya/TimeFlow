@@ -12,6 +12,8 @@ import {
   Users, LogOut, CheckCircle, XCircle, Clock3,
   ChevronRight, Inbox, Search, BarChart2, Clock,
   TrendingUp, UserCheck,
+  Menu,
+  X,
 } from "lucide-react";
 
 /* ─── Design tokens ─────────────────────── */
@@ -54,6 +56,7 @@ export default function AuthorityPanel() {
 
   const [selectedId, setSelectedId] = useState(null);
   const [search, setSearch] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   /* ── original logic ── */
   useEffect(() => {
@@ -97,13 +100,20 @@ export default function AuthorityPanel() {
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: S.surfaceContainerLow, fontFamily: S.font }}>
 
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div onClick={() => setSidebarOpen(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 19 }}
+        />
+      )}
+
       {/* ── SIDEBAR ── */}
-      <aside style={{
+      <aside className={`auth-sidebar${sidebarOpen ? ' auth-sidebar--open' : ''}`} style={{
         width: 240, flexShrink: 0, background: S.surfaceLowest,
         borderRight: `1px solid ${S.outlineVar}`,
         display: "flex", flexDirection: "column",
         padding: "24px 12px", position: "sticky", top: 0, height: "100vh",
-        boxSizing: "border-box", zIndex: 10,
+        boxSizing: "border-box", zIndex: 20,
       }}>
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 8px", marginBottom: 32 }}>
@@ -196,7 +206,25 @@ export default function AuthorityPanel() {
       </aside>
 
       {/* ── MAIN ── */}
-      <main style={{ flex: 1, padding: "32px 36px", overflowY: "auto" }}>
+      <main className={`auth-main${sidebarOpen ? ' auth-main--shifted' : ''}`} style={{
+        flex: 1, padding: "32px 36px", overflowY: "auto",
+        transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1)',
+      }}>
+
+        {/* Mobile top bar */}
+        <div className="auth-mobile-topbar" style={{ display: 'none', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <button onClick={() => setSidebarOpen(v => !v)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, fontWeight: 700, color: S.onSurface, fontFamily: S.font }}
+          >
+            <svg viewBox="0 0 28 28" fill="none" width="22" height="22"><circle cx="14" cy="14" r="8" stroke={S.primary} strokeWidth="2.5" fill="none"/><path d="M14 8v6l4 2" stroke={S.primary} strokeWidth="2.5" strokeLinecap="round"/></svg>
+            TimeFlow
+          </button>
+          <button onClick={() => setSidebarOpen(v => !v)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: S.onSurface, padding: 4, display: 'flex', alignItems: 'center' }}
+          >
+            {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
@@ -210,7 +238,7 @@ export default function AuthorityPanel() {
         </motion.div>
 
         {/* Stat cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 28 }}>
+        <div className="auth-stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 28 }}>
           {[
             { label: "Total Employees", value: isLoading ? "—" : totalEmployees, icon: UserCheck, iconBg: S.primaryLight, iconColor: S.primary, sub: "In your team" },
             { label: "Pending Actions", value: isLoading ? "—" : pendingCount, icon: Clock3, iconBg: "#fef3c7", iconColor: "#92400e", sub: "Awaiting your review" },
@@ -259,7 +287,7 @@ export default function AuthorityPanel() {
                   style={{ display: "flex", flexDirection: "column", height: "100%" }}>
 
                   {/* Employee header */}
-                  <div style={{ padding: "20px 24px", borderBottom: `1px solid ${S.outlineVar}`, display: "flex", alignItems: "center", gap: 14 }}>
+                  <div className="auth-emp-header" style={{ padding: "20px 24px", borderBottom: `1px solid ${S.outlineVar}`, display: "flex", alignItems: "center", gap: 14 }}>
                     <div style={{ width: 48, height: 48, borderRadius: "50%", background: S.primaryLight, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <span style={{ fontSize: 16, fontWeight: 700, color: S.primary }}>{initials(selected.name)}</span>
                     </div>
@@ -268,7 +296,7 @@ export default function AuthorityPanel() {
                       <div style={{ fontSize: 13, color: S.onSurfaceVar }}>{selected.email}</div>
                     </div>
                     {/* Mini stats */}
-                    <div style={{ display: "flex", gap: 20 }}>
+                    <div className="auth-emp-stats" style={{ display: "flex", gap: 20 }}>
                       {[
                         { label: "Total Hours", value: `${selected.totalOvertimeHours ?? 0}h`, color: S.primary },
                         { label: "Requests", value: (selected.requests || []).length, color: S.onSurface },
@@ -289,7 +317,8 @@ export default function AuthorityPanel() {
                         <p style={{ margin: 0, fontSize: 14 }}>No requests from this employee.</p>
                       </div>
                     ) : (
-                      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                      <div style={{ overflowX: "auto" }}>
+                        <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
                         <thead>
                           <tr style={{ background: S.surfaceContainerLow }}>
                             {["Date", "Hours", "Reason", "Status", "Actions"].map(col => (
@@ -350,6 +379,7 @@ export default function AuthorityPanel() {
                           })}
                         </tbody>
                       </table>
+                    </div>
                     )}
                   </div>
                 </motion.div>
@@ -359,7 +389,40 @@ export default function AuthorityPanel() {
         </div>
       </main>
 
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');`}</style>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        @media (max-width: 900px) {
+          .auth-sidebar {
+            position: fixed !important;
+            left: -260px;
+            top: 0;
+            height: 100vh;
+            transition: left 0.28s cubic-bezier(0.4,0,0.2,1);
+            box-shadow: 4px 0 24px rgba(0,0,0,0.10);
+          }
+          .auth-sidebar--open { left: 0 !important; }
+          .auth-mobile-topbar { display: flex !important; }
+          .auth-main { padding: 16px !important; }
+          .auth-main--shifted {
+            transform: translateX(240px);
+          }
+        }
+        @media (max-width: 640px) {
+          .auth-stat-grid { grid-template-columns: 1fr !important; }
+          .auth-emp-header {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 20px !important;
+            padding: 24px !important;
+          }
+          .auth-emp-stats {
+            width: 100% !important;
+            justify-content: space-between !important;
+            padding-top: 16px !important;
+            border-top: 1px solid ${S.outlineVar} !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
