@@ -4,6 +4,15 @@ import axios from 'axios';
 const API_URL = 'http://localhost:5000/api/overtime';
 
 // Fetch all employees with grouped requests
+export const fetchEmployees = createAsyncThunk('overtime/fetchEmployees', async () => {
+    try {
+        const res = await axios.get(`${API_URL}/employees`, { withCredentials: true });
+        return res.data;
+    } catch (error) {
+        console.error(error);
+    }
+})
+
 export const fetchRequest = createAsyncThunk('overtime/fetchRequest', async () => {
     try {
         const res = await axios.get(`${API_URL}/my-requests`, { withCredentials: true });
@@ -34,7 +43,8 @@ export const rejectRequest = createAsyncThunk('overtime/rejectRequest', async (r
 });
 
 const initialState = {
-    employees: [],
+    employees: [],       // current user's own requests (flat array)
+    employeeList: [],    // authority view: all employees with nested requests
     isLoading: false,
     isError: false,
     isSuccess: false,
@@ -54,6 +64,19 @@ const overtimeSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+            .addCase(fetchEmployees.pending, (state) => {
+                state.isLoading = true;
+            })
+            .addCase(fetchEmployees.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                state.employeeList = action.payload || [];
+            })
+            .addCase(fetchEmployees.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload;
+            })
             .addCase(fetchRequest.pending, (state) => {
                 state.isLoading = true;
             })

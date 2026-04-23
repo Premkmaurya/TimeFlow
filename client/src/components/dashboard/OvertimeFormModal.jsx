@@ -165,18 +165,29 @@ export default function OvertimeFormModal({ open, onClose, onSubmit, isSubmittin
                   {/* Hours */}
                   <div>
                     <label style={labelStyle}>Hours Worked</label>
-                    <input
+                    <select
                       id="ot-hours"
-                      type="number"
-                      step="0.5"
-                      placeholder="e.g. 2.5"
                       {...register("hours", {
                         required: "Hours is required",
-                        min: { value: 0.5, message: "Minimum 0.5 hrs" },
-                        pattern: { value: /^[0-9]+\.?[0-9]*$/, message: "Enter a valid number" },
                       })}
-                      style={inputBase(!!errors.hours)}
-                    />
+                      defaultValue=""
+                      style={{
+                        ...inputBase(!!errors.hours),
+                        cursor: "pointer",
+                        appearance: "none",
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23424754' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+                        backgroundRepeat: "no-repeat",
+                        backgroundPosition: "right 12px center",
+                        paddingRight: 36,
+                      }}
+                    >
+                      <option value="" disabled>Select hours…</option>
+                      {Array.from({ length: 24 }, (_, i) => (i + 1) * 0.5).map((h) => (
+                        <option key={h} value={h}>
+                          {h % 1 === 0 ? `${h}.0` : h} hr{h !== 1 ? "s" : ""}
+                        </option>
+                      ))}
+                    </select>
                     {errors.hours && (
                       <p style={{ fontSize: 12, color: S.error, marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
                         <AlertCircle size={12} /> {errors.hours.message}
