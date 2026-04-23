@@ -1,58 +1,113 @@
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchEmployees, reset } from "../features/overtime/overtimeSlice";
+import { fetchRequest, reset } from "../features/overtime/overtimeSlice";
 import axios from "axios";
-import { motion } from "framer-motion";
-import { Clock, Plus, CheckCircle, Clock3, XCircle, AlertCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Clock, Plus, CheckCircle, XCircle, Clock3,
+  LayoutDashboard, ListOrdered, LogOut, ChevronRight,
+  TrendingUp, AlertCircle, Inbox, User,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { logout, reset as authReset } from "../features/auth/authSlice";
+import OvertimeFormModal from "../components/dashboard/OvertimeFormModal";
 
-const Dashboard = () => {
+/* ─── Design tokens (Luminous Efficiency) ────── */
+const S = {
+  primary: "#0058be",
+  primaryDark: "#004395",
+  primaryLight: "#d8e2ff",
+  surface: "#f9f9ff",
+  surfaceLowest: "#ffffff",
+  surfaceContainer: "#ecedf7",
+  surfaceContainerLow: "#f2f3fd",
+  onSurface: "#191b23",
+  onSurfaceVar: "#424754",
+  outline: "#c2c6d6",
+  outlineVar: "#e1e2ec",
+  tertiary: "#924700",
+  tertiaryLight: "#ffdcc6",
+  error: "#ba1a1a",
+  errorContainer: "#ffdad6",
+  font: "Inter, system-ui, -apple-system, sans-serif",
+};
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  show: (i = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.4, delay: i * 0.07 } }),
+};
+
+/* ─── Status helpers ────────────────────────── */
+const STATUS_CONFIG = {
+  approved: {
+    label: "Approved",
+    bg: "#dcfce7", color: "#15803d",
+    icon: CheckCircle,
+  },
+  rejected: {
+    label: "Rejected",
+    bg: S.errorContainer, color: S.error,
+    icon: XCircle,
+  },
+  pending: {
+    label: "Pending",
+    bg: "#fef3c7", color: "#92400e",
+    icon: Clock3,
+  },
+  pending_second: {
+    label: "Pending 2nd",
+    bg: "#ede9fe", color: "#5b21b6",
+    icon: Clock3,
+  },
+};
+
+const getStatus = (status) =>
+  STATUS_CONFIG[status] || STATUS_CONFIG.pending;
+
+/* ─── Sidebar nav items ─────────────────────── */
+const navItems = [
+  { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "requests", label: "My Requests", icon: ListOrdered },
+];
+
+export default function Dashboard() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const { user } = useSelector((state) => state.auth);
   const employees = useSelector((state) => state.overtime.employees);
   const isLoading = useSelector((state) => state.overtime.isLoading);
-  const [showForm, setShowForm] = useState(false);
+
+  const [activeNav, setActiveNav] = useState("overview");
+  const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // For employee dashboard, show only current user's requests
-  const userRequests = employees
-    .find((emp) => emp.email === user?.email)?.requests || [];
+  /* ── fetchRequest returns a flat array of the current user's requests ── */
+  const userRequests = Array.isArray(employees) ? employees : [];
 
-  // Calculate total approved overtime hours
-  const totalApprovedOvertime = userRequests
-    ? userRequests.filter((req) => req.status === "approved").reduce((sum, req) => sum + Number(req.hours), 0)
-    : 0;
+  const totalApproved = userRequests
+    .filter((r) => r.status === "approved")
+    .reduce((sum, r) => sum + Number(r.hours), 0);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset: resetForm,
-  } = useForm({
-    defaultValues: {
-      requestDate: "",
-      hours: "",
-      reason: "",
-    },
-  });
+  const totalPending = userRequests.filter(
+    (r) => r.status === "pending" || r.status === "pending_second"
+  ).length;
+
+  const totalRejected = userRequests.filter((r) => r.status === "rejected").length;
 
   useEffect(() => {
-    if (user) dispatch(fetchEmployees());
-    return () => {
-      dispatch(reset());
-    };
+    if (user) dispatch(fetchRequest());
+    return () => { dispatch(reset()); };
   }, [user, dispatch]);
 
-  const onSubmit = async (data) => {
+  const onSubmitOvertime = async (data) => {
     setIsSubmitting(true);
-    console.log(data)
     try {
       await axios.post("http://localhost:5000/api/overtime", data, {
         withCredentials: true,
       });
-      setShowForm(false);
-      resetForm();
-      dispatch(fetchEmployees());
+      setShowModal(false);
+      dispatch(fetchRequest()); // refresh the list
     } catch (err) {
       console.error(err);
       alert(err.response?.data?.message || "Error submitting request");
@@ -61,219 +116,403 @@ const Dashboard = () => {
     }
   };
 
-  const getStatusIcon = (status) => {
-    if (status === "approved")
-      return <CheckCircle className="w-5 h-5 text-green-500" />;
-    if (status === "rejected")
-      return <XCircle className="w-5 h-5 text-red-500" />;
-    return <Clock3 className="w-5 h-5 text-orange-400" />;
+  const onLogout = () => {
+    dispatch(logout());
+    dispatch(authReset());
+    navigate("/login");
   };
+  /* ── End original logic ── */
+
+  /* ─── Stat cards ─────────────────────────── */
+  const stats = [
+    {
+      label: "Approved Hours",
+      value: `${totalApproved}h`,
+      icon: TrendingUp,
+      iconBg: S.primaryLight,
+      iconColor: S.primary,
+      delta: "Total this period",
+    },
+    {
+      label: "Pending Requests",
+      value: totalPending,
+      icon: Clock3,
+      iconBg: "#fef3c7",
+      iconColor: "#92400e",
+      delta: "Awaiting review",
+    },
+    {
+      label: "Total Submitted",
+      value: userRequests.length,
+      icon: ListOrdered,
+      iconBg: S.surfaceContainer,
+      iconColor: S.onSurfaceVar,
+      delta: "All time",
+    },
+    {
+      label: "Rejected",
+      value: totalRejected,
+      icon: XCircle,
+      iconBg: S.errorContainer,
+      iconColor: S.error,
+      delta: "Need review",
+    },
+  ];
+
+  const recentRequests = [...userRequests]
+    .sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate))
+    .slice(0, 5);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="space-y-6"
-    >
-      <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-800">
-            Your Overtime Requests
-          </h2>
-          <p className="text-slate-500">
-            Track and submit your extra hours worked.
-          </p>
-          <div className="mt-2 text-indigo-700 font-semibold text-lg">
-            Total Approved Overtime: {totalApprovedOvertime}h
+    <div style={{
+      display: "flex",
+      height: "100%",
+      background: S.surfaceContainerLow,
+      fontFamily: S.font,
+      minHeight: "100vh",
+    }}>
+
+      {/* ── SIDEBAR ─────────────────────────────── */}
+      <aside style={{
+        width: 240,
+        flexShrink: 0,
+        background: S.surfaceLowest,
+        borderRight: `1px solid ${S.outlineVar}`,
+        display: "flex",
+        flexDirection: "column",
+        padding: "24px 12px",
+        position: "sticky",
+        top: 0,
+        height: "100vh",
+        boxSizing: "border-box",
+        zIndex: 10,
+      }}>
+        {/* Logo */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 8px", marginBottom: 32 }}>
+          <div style={{ width: 32, height: 32, background: S.primary, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <svg viewBox="0 0 28 28" fill="none" width="22" height="22">
+              <circle cx="14" cy="14" r="8" stroke="white" strokeWidth="2.5" fill="none" />
+              <path d="M14 8v6l4 2" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+            </svg>
+          </div>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: S.onSurface, letterSpacing: "-0.02em", lineHeight: 1 }}>TimeFlow</div>
+            <div style={{ fontSize: 10, color: S.onSurfaceVar, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.06em" }}>Management System</div>
           </div>
         </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-smooth shadow-md shadow-indigo-200"
-        >
-          <Plus className="w-5 h-5" />
-          New Request
-        </button>
-      </div>
 
-      {showForm && (
-        <motion.div
-          initial={{ height: 0, opacity: 0 }}
-          animate={{ height: "auto", opacity: 1 }}
-          className="glass p-6 rounded-2xl overflow-hidden"
-        >
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6"
-          >
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Date
-              </label>
-              <input
-                type="date"
-                {...register("requestDate", {
-                  required: "Date is required",
-                })}
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-colors ${
-                  errors.requestDate
-                    ? "border-red-300 bg-red-50"
-                    : "border-slate-200"
-                }`}
-              />
-              {errors.requestDate && (
-                <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  {errors.requestDate.message}
-                </p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Hours
-              </label>
-              <input
-                type="number"
-                step="0.5"
-                {...register("hours", {
-                  required: "Hours is required",
-                  min: { value: 0.5, message: "Minimum 0.5 hours" },
-                  pattern: {
-                    value: /^[0-9]+\.?[0-9]*$/,
-                    message: "Enter a valid number",
-                  },
-                })}
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-colors ${
-                  errors.hours
-                    ? "border-red-300 bg-red-50"
-                    : "border-slate-200"
-                }`}
-              />
-              {errors.hours && (
-                <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  {errors.hours.message}
-                </p>
-              )}
-            </div>
-            <div className="md:col-span-3">
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Reason / Justification
-              </label>
-              <textarea
-                rows="3"
-                {...register("reason", {
-                  required: "Reason is required",
-                  minLength: {
-                    value: 10,
-                    message: "Reason must be at least 10 characters",
-                  },
-                })}
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none resize-none transition-colors ${
-                  errors.reason
-                    ? "border-red-300 bg-red-50"
-                    : "border-slate-200"
-                }`}
-              />
-              {errors.reason && (
-                <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  {errors.reason.message}
-                </p>
-              )}
-            </div>
-            <div className="md:col-span-3 flex justify-end gap-3">
+        {/* Nav items */}
+        <nav style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = activeNav === item.id;
+            return (
               <button
-                type="button"
-                onClick={() => {
-                  setShowForm(false);
-                  resetForm();
+                key={item.id}
+                onClick={() => setActiveNav(item.id)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "10px 12px",
+                  borderRadius: 10,
+                  border: "none",
+                  background: active ? S.primaryLight : "transparent",
+                  color: active ? S.primary : S.onSurfaceVar,
+                  fontWeight: active ? 600 : 500,
+                  fontSize: 14,
+                  cursor: "pointer",
+                  width: "100%",
+                  textAlign: "left",
+                  fontFamily: S.font,
+                  transition: "all 0.15s",
                 }}
-                className="px-6 py-2 border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
+                onMouseEnter={e => { if (!active) { e.currentTarget.style.background = S.surfaceContainer; e.currentTarget.style.color = S.onSurface; } }}
+                onMouseLeave={e => { if (!active) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = S.onSurfaceVar; } }}
               >
-                Cancel
+                <Icon size={18} />
+                {item.label}
               </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center gap-2"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  "Submit Request"
-                )}
-              </button>
-            </div>
-          </form>
-        </motion.div>
-      )}
+            );
+          })}
+        </nav>
 
-      <div className="glass rounded-2xl overflow-hidden">
-        {isLoading ? (
-          <div className="p-8 text-center text-slate-500">
-            Loading your requests...
+        {/* User + Logout */}
+        <div style={{ borderTop: `1px solid ${S.outlineVar}`, paddingTop: 16 }}>
+          {/* User info */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", marginBottom: 8 }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: "50%",
+              background: S.primaryLight,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              flexShrink: 0,
+            }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: S.primary }}>
+                {user?.firstName?.[0]}{user?.lastName?.[0]}
+              </span>
+            </div>
+            <div style={{ overflow: "hidden" }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: S.onSurface, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {user?.firstName} {user?.lastName}
+              </div>
+              <div style={{ fontSize: 11, color: S.onSurfaceVar, textTransform: "capitalize" }}>{user?.role}</div>
+            </div>
           </div>
-        ) : userRequests.length > 0 ? (
-          <table className="w-full text-left">
-            <thead className="bg-slate-50/80 border-b border-slate-200">
-              <tr>
-                <th className="px-6 py-4 font-semibold text-slate-700">Date</th>
-                <th className="px-6 py-4 font-semibold text-slate-700">
-                  Hours
-                </th>
-                <th className="px-6 py-4 font-semibold text-slate-700 hidden md:table-cell">
-                  Details
-                </th>
-                <th className="px-6 py-4 font-semibold text-slate-700">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 bg-white/50">
-              {userRequests.map((req) => (
-                <tr
-                  key={req.id}
-                  className="hover:bg-slate-50/50 transition-colors"
-                >
-                  <td className="px-6 py-4 whitespace-nowrap text-slate-800">
-                    {new Date(req.requestDate).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap font-medium text-indigo-600">
-                    {req.hours}h
-                  </td>
-                  <td className="px-6 py-4 hidden md:table-cell text-slate-600 truncate max-w-xs">
-                    {req.reason}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      {getStatusIcon(req.status)}
-                      <span className="capitalize text-sm font-medium text-slate-700">
-                        {req.status.replace("_", " ")}
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <div className="p-12 text-center">
-            <Clock className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-slate-700">
-              No requests yet
-            </h3>
-            <p className="text-slate-500">
-              You haven't submitted any overtime requests.
+
+          <button
+            onClick={onLogout}
+            style={{
+              display: "flex", alignItems: "center", gap: 10,
+              padding: "10px 12px",
+              borderRadius: 10, border: "none",
+              background: "transparent",
+              color: S.error,
+              fontWeight: 500, fontSize: 14,
+              cursor: "pointer",
+              width: "100%", textAlign: "left",
+              fontFamily: S.font,
+              transition: "all 0.15s",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = S.errorContainer; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+          >
+            <LogOut size={18} />
+            Log Out
+          </button>
+        </div>
+      </aside>
+
+      {/* ── MAIN CONTENT ────────────────────────── */}
+      <main style={{ flex: 1, padding: "32px 36px", overflowY: "auto" }}>
+
+        {/* ── Top header ── */}
+        <motion.div
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          style={{
+            display: "flex", justifyContent: "space-between", alignItems: "flex-start",
+            marginBottom: 28,
+          }}
+        >
+          <div>
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: S.onSurface, letterSpacing: "-0.02em", margin: 0, marginBottom: 4 }}>
+              Welcome back, {user?.firstName}
+            </h1>
+            <p style={{ fontSize: 14, color: S.onSurfaceVar, margin: 0 }}>
+              Here's your overtime overview for this period.
             </p>
           </div>
-        )}
-      </div>
-    </motion.div>
-  );
-};
 
-export default Dashboard;
+          <button
+            id="submit-overtime-btn"
+            onClick={() => setShowModal(true)}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              background: S.primary,
+              color: "#ffffff",
+              border: "none",
+              borderRadius: 12,
+              padding: "11px 20px",
+              fontWeight: 700,
+              fontSize: 14,
+              cursor: "pointer",
+              fontFamily: S.font,
+              boxShadow: "0 4px 16px rgba(0,88,190,0.28)",
+              transition: "all 0.2s",
+              flexShrink: 0,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = S.primaryDark; e.currentTarget.style.transform = "translateY(-1px)"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = S.primary; e.currentTarget.style.transform = "translateY(0)"; }}
+          >
+            <Plus size={18} />
+            Submit Overtime
+          </button>
+        </motion.div>
+
+        {/* ── Stat cards ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
+          {stats.map((s, i) => {
+            const Icon = s.icon;
+            return (
+              <motion.div
+                key={i}
+                initial="hidden"
+                animate="show"
+                custom={i}
+                variants={fadeUp}
+                style={{
+                  background: S.surfaceLowest,
+                  border: `1px solid ${S.outlineVar}`,
+                  borderRadius: 16,
+                  padding: "20px 20px",
+                  boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: S.onSurfaceVar, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                    {s.label}
+                  </div>
+                  <div style={{ width: 34, height: 34, borderRadius: 10, background: s.iconBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Icon size={17} color={s.iconColor} />
+                  </div>
+                </div>
+                <div style={{ fontSize: 28, fontWeight: 800, color: S.onSurface, letterSpacing: "-0.02em", lineHeight: 1, marginBottom: 4 }}>
+                  {isLoading ? "—" : s.value}
+                </div>
+                <div style={{ fontSize: 12, color: S.onSurfaceVar }}>{s.delta}</div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* ── Requests Table ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          style={{
+            background: S.surfaceLowest,
+            border: `1px solid ${S.outlineVar}`,
+            borderRadius: 16,
+            overflow: "hidden",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
+          }}
+        >
+          {/* Table header */}
+          <div style={{
+            display: "flex", justifyContent: "space-between", alignItems: "center",
+            padding: "18px 24px",
+            borderBottom: `1px solid ${S.outlineVar}`,
+          }}>
+            <div>
+              <h2 style={{ fontSize: 16, fontWeight: 700, color: S.onSurface, margin: 0, letterSpacing: "-0.01em" }}>
+                {activeNav === "overview" ? "Recent Activity" : "All My Requests"}
+              </h2>
+              <p style={{ fontSize: 13, color: S.onSurfaceVar, margin: 0, marginTop: 2 }}>
+                {activeNav === "overview"
+                  ? `Showing your last ${Math.min(recentRequests.length, 5)} submissions`
+                  : `${userRequests.length} total request${userRequests.length !== 1 ? "s" : ""}`
+                }
+              </p>
+            </div>
+            {activeNav === "overview" && userRequests.length > 5 && (
+              <button
+                onClick={() => setActiveNav("requests")}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 4,
+                  fontSize: 13, fontWeight: 600, color: S.primary,
+                  background: "none", border: "none", cursor: "pointer",
+                  fontFamily: S.font,
+                }}
+              >
+                View all <ChevronRight size={15} />
+              </button>
+            )}
+          </div>
+
+          {isLoading ? (
+            <div style={{ padding: "48px", textAlign: "center", color: S.onSurfaceVar }}>
+              <Clock size={28} color={S.outline} style={{ marginBottom: 12 }} />
+              <p style={{ margin: 0, fontSize: 14 }}>Loading your requests…</p>
+            </div>
+          ) : (activeNav === "overview" ? recentRequests : userRequests).length > 0 ? (
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ background: S.surfaceContainerLow }}>
+                  {["Date", "Hours", "Reason", "Status"].map((col) => (
+                    <th key={col} style={{
+                      padding: "11px 20px",
+                      textAlign: "left",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: S.onSurfaceVar,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.06em",
+                      borderBottom: `1px solid ${S.outlineVar}`,
+                    }}>
+                      {col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {(activeNav === "overview" ? recentRequests : userRequests).map((req, idx) => {
+                  const st = getStatus(req.status);
+                  const Icon = st.icon;
+                  return (
+                    <tr
+                      key={req.id || idx}
+                      style={{
+                        borderBottom: `1px solid ${S.outlineVar}`,
+                        transition: "background 0.15s",
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = S.surfaceContainerLow}
+                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                    >
+                      <td style={{ padding: "14px 20px", fontSize: 14, color: S.onSurface, whiteSpace: "nowrap" }}>
+                        {new Date(req.requestDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                      </td>
+                      <td style={{ padding: "14px 20px", fontSize: 14, whiteSpace: "nowrap" }}>
+                        <span style={{ fontWeight: 700, color: S.primary }}>{req.hours}h</span>
+                      </td>
+                      <td style={{ padding: "14px 20px", fontSize: 14, color: S.onSurfaceVar, maxWidth: 260 }}>
+                        <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {req.reason}
+                        </span>
+                      </td>
+                      <td style={{ padding: "14px 20px" }}>
+                        <span style={{
+                          display: "inline-flex", alignItems: "center", gap: 6,
+                          background: st.bg, color: st.color,
+                          borderRadius: 99, padding: "4px 10px",
+                          fontSize: 12, fontWeight: 600,
+                        }}>
+                          <Icon size={13} />
+                          {st.label}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          ) : (
+            <div style={{ padding: "60px 24px", textAlign: "center" }}>
+              <div style={{
+                width: 56, height: 56, borderRadius: "50%",
+                background: S.surfaceContainer,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                margin: "0 auto 16px",
+              }}>
+                <Inbox size={24} color={S.onSurfaceVar} />
+              </div>
+              <h3 style={{ fontSize: 16, fontWeight: 600, color: S.onSurface, margin: 0, marginBottom: 8 }}>No requests yet</h3>
+              <p style={{ fontSize: 14, color: S.onSurfaceVar, margin: 0, marginBottom: 20 }}>
+                You haven't submitted any overtime requests yet.
+              </p>
+              <button
+                onClick={() => setShowModal(true)}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 8,
+                  background: S.primaryLight, color: S.primary,
+                  border: "none", borderRadius: 10, padding: "10px 20px",
+                  fontWeight: 600, fontSize: 14, cursor: "pointer",
+                  fontFamily: S.font,
+                }}
+              >
+                <Plus size={16} /> Submit Your First Request
+              </button>
+            </div>
+          )}
+        </motion.div>
+      </main>
+
+      {/* ── Modal ─────────────────────────────────── */}
+      <OvertimeFormModal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        onSubmit={onSubmitOvertime}
+        isSubmitting={isSubmitting}
+      />
+    </div>
+  );
+}

@@ -3,11 +3,43 @@ import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
 import { login, reset } from "../features/auth/authSlice";
 import { motion } from "framer-motion";
-import { LogIn } from "lucide-react";
+import { LogIn, Clock, CheckCircle, Shield, BarChart2, Eye, EyeOff } from "lucide-react";
 
-const Login = () => {
+/* ── Design tokens (Luminous Efficiency / Stitch #15085875783163553981) ── */
+const S = {
+  primary: "#0058be",
+  primaryDark: "#004395",
+  primaryLight: "#d8e2ff",
+  surface: "#f9f9ff",
+  surfaceLowest: "#ffffff",
+  onSurface: "#191b23",
+  onSurfaceVar: "#424754",
+  outline: "#c2c6d6",
+  outlineVar: "#e1e2ec",
+  error: "#ba1a1a",
+  errorContainer: "#ffdad6",
+  font: "Inter, system-ui, -apple-system, sans-serif",
+};
+
+const highlights = [
+  { icon: CheckCircle, text: "Dual-step approval workflow" },
+  { icon: BarChart2, text: "Real-time overtime dashboards" },
+  { icon: Clock, text: "Instant status notifications" },
+  { icon: Shield, text: "Role-based secure access" },
+];
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  show: (i = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.5, delay: i * 0.08 } }),
+};
+
+export default function Login() {
+  /* ── original state & logic ── */
   const [formData, setFormData] = useState({ email: "", password: "" });
   const { email, password } = formData;
+
+  const [showPass, setShowPass] = useState(false);
+  const [focused, setFocused] = useState("");
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -17,9 +49,7 @@ const Login = () => {
   );
 
   useEffect(() => {
-    if (isError) {
-      console.error(message);
-    }
+    if (isError) console.error(message);
     if (isSuccess || user) {
       if (user?.role === "employee") navigate("/dashboard");
       else navigate("/authority");
@@ -28,85 +58,287 @@ const Login = () => {
   }, [user, isError, isSuccess, message, navigate, dispatch]);
 
   const onChange = (e) =>
-    setFormData((prevState) => ({
-      ...prevState,
-      [e.target.name]: e.target.value,
-    }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   const onSubmit = (e) => {
     e.preventDefault();
     dispatch(login(formData));
   };
+  /* ── end original logic ── */
+
+  const inputStyle = (name) => ({
+    width: "100%",
+    padding: "12px 16px",
+    paddingRight: name === "password" ? 44 : 16,
+    fontSize: 15,
+    border: `1.5px solid ${focused === name ? S.primary : S.outline}`,
+    borderRadius: 12,
+    outline: "none",
+    background: S.surfaceLowest,
+    color: S.onSurface,
+    boxShadow: focused === name ? `0 0 0 3px rgba(0,88,190,0.10)` : "none",
+    transition: "all 0.2s",
+    fontFamily: S.font,
+    boxSizing: "border-box",
+  });
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="max-w-md mx-auto mt-20"
+    <div
+      style={{
+        height: "100vh",
+        overflow: "hidden",
+        display: "flex",
+        background: S.surface,
+        fontFamily: S.font,
+      }}
     >
-      <div className="glass p-8 rounded-2xl">
-        <div className="text-center mb-8">
-          <LogIn className="w-12 h-12 text-indigo-600 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-slate-800">Welcome Back</h1>
-          <p className="text-slate-500 mt-2">Sign in to manage your hours</p>
+      {/* ── LEFT PANEL (branding) ───────────────────── */}
+      <div
+        style={{
+          display: "none",
+          flex: "0 0 45%",
+          height: "100%",
+          background: `linear-gradient(145deg, ${S.primary} 0%, ${S.primaryDark} 100%)`,
+          padding: "48px 52px",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          overflow: "hidden",
+        }}
+        className="login-left-panel"
+      >
+        {/* Logo */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 36, height: 36, background: "rgba(255,255,255,0.15)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg viewBox="0 0 28 28" fill="none" width="28" height="28">
+              <circle cx="14" cy="14" r="8" stroke="white" strokeWidth="2.5" fill="none" />
+              <path d="M14 8v6l4 2" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+            </svg>
+          </div>
+          <span style={{ fontSize: 20, fontWeight: 800, color: "#ffffff", letterSpacing: "-0.02em" }}>TimeFlow</span>
         </div>
 
-        {isError && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-6 text-sm border border-red-100">
-            {message}
-          </div>
-        )}
-
-        <form onSubmit={onSubmit} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={email}
-              onChange={onChange}
-              required
-              className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-smooth"
-              placeholder="Employee email"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              name="password"
-              value={password}
-              onChange={onChange}
-              required
-              className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-smooth"
-              placeholder="Password"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-indigo-600 text-white font-semibold py-2.5 rounded-lg shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-0.5 transition-smooth disabled:opacity-70 disabled:transform-none"
+        {/* Headline */}
+        <div>
+          <motion.h2
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            style={{ fontSize: "clamp(1.8rem, 3vw, 2.6rem)", fontWeight: 700, color: "#ffffff", lineHeight: 1.2, letterSpacing: "-0.02em", marginBottom: 16 }}
           >
-            {isLoading ? "Signing in..." : "Sign In"}
-          </button>
+            Track &amp; Approve Overtime Efficiently
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            style={{ fontSize: 16, color: "#adc6ff", lineHeight: 1.7, marginBottom: 40 }}
+          >
+            Streamline your team's hours, reduce compliance risks, and automate approvals within a unified, executive-grade workspace.
+          </motion.p>
 
-          <p className="text-center text-sm text-slate-600 mt-6">
+          {/* Feature list */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {highlights.map((h, i) => {
+              const Icon = h.icon;
+              return (
+                <motion.div
+                  key={i}
+                  initial="hidden"
+                  animate="show"
+                  custom={i}
+                  variants={fadeUp}
+                  style={{ display: "flex", alignItems: "center", gap: 12 }}
+                >
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(255,255,255,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <Icon size={18} color="#ffffff" />
+                  </div>
+                  <span style={{ fontSize: 15, color: "#e1e2ec", fontWeight: 500 }}>{h.text}</span>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Bottom quote */}
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: 24 }}>
+          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.6 }}>
+            Trusted by 500+ companies to manage overtime fairly and transparently.
+          </p>
+        </div>
+      </div>
+
+      {/* ── RIGHT PANEL (form) ──────────────────────── */}
+      <div
+        style={{
+          flex: 1,
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "24px",
+          background: S.surface,
+          overflowY: "auto",
+        }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55 }}
+          style={{ width: "100%", maxWidth: 440 }}
+        >
+          {/* Mobile logo */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24 }}>
+            <div style={{ width: 32, height: 32, background: S.primary, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg viewBox="0 0 28 28" fill="none" width="24" height="24">
+                <circle cx="14" cy="14" r="8" stroke="white" strokeWidth="2.5" fill="none" />
+                <path d="M14 8v6l4 2" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+              </svg>
+            </div>
+            <span style={{ fontSize: 18, fontWeight: 800, color: S.primary, letterSpacing: "-0.02em" }}>TimeFlow</span>
+          </div>
+
+          {/* Heading */}
+          <div style={{ marginBottom: 20 }}>
+            <h1 style={{ fontSize: 28, fontWeight: 700, color: S.onSurface, letterSpacing: "-0.02em", marginBottom: 8 }}>
+              Welcome back
+            </h1>
+            <p style={{ fontSize: 15, color: S.onSurfaceVar, lineHeight: 1.6 }}>
+              Please enter your credentials to access your dashboard.
+            </p>
+          </div>
+
+          {/* Error banner */}
+          {isError && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              style={{
+                background: S.errorContainer,
+                border: `1px solid ${S.error}`,
+                color: S.error,
+                borderRadius: 12,
+                padding: "12px 16px",
+                fontSize: 14,
+                fontWeight: 500,
+                marginBottom: 24,
+              }}
+            >
+              {message}
+            </motion.div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={onSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Email */}
+            <div>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: S.onSurfaceVar, marginBottom: 8, letterSpacing: "0.01em" }}>
+                Email address
+              </label>
+              <input
+                id="login-email"
+                type="email"
+                name="email"
+                value={email}
+                onChange={onChange}
+                onFocus={() => setFocused("email")}
+                onBlur={() => setFocused("")}
+                required
+                placeholder="you@company.com"
+                style={inputStyle("email")}
+              />
+            </div>
+
+            {/* Password */}
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <label style={{ fontSize: 13, fontWeight: 600, color: S.onSurfaceVar, letterSpacing: "0.01em" }}>
+                  Password
+                </label>
+                <button
+                  type="button"
+                  style={{ fontSize: 13, color: S.primary, fontWeight: 500, background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: S.font }}
+                >
+                  Forgot password?
+                </button>
+              </div>
+              <div style={{ position: "relative" }}>
+                <input
+                  id="login-password"
+                  type={showPass ? "text" : "password"}
+                  name="password"
+                  value={password}
+                  onChange={onChange}
+                  onFocus={() => setFocused("password")}
+                  onBlur={() => setFocused("")}
+                  required
+                  placeholder="Enter your password"
+                  style={inputStyle("password")}
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowPass((v) => !v)}
+                  style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: S.onSurfaceVar, display: "flex", alignItems: "center" }}
+                >
+                  {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Submit */}
+            <button
+              id="login-submit"
+              type="submit"
+              disabled={isLoading}
+              style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                background: isLoading ? "#adc6ff" : S.primary,
+                color: "#ffffff",
+                border: "none",
+                borderRadius: 12,
+                padding: "14px",
+                fontWeight: 700,
+                fontSize: 16,
+                cursor: isLoading ? "not-allowed" : "pointer",
+                boxShadow: isLoading ? "none" : "0 4px 16px rgba(0,88,190,0.28)",
+                transition: "all 0.2s",
+                fontFamily: S.font,
+                marginTop: 4,
+              }}
+              onMouseEnter={(e) => { if (!isLoading) e.currentTarget.style.background = S.primaryDark; }}
+              onMouseLeave={(e) => { if (!isLoading) e.currentTarget.style.background = S.primary; }}
+            >
+              <LogIn size={18} />
+              {isLoading ? "Signing in…" : "Sign In"}
+            </button>
+          </form>
+
+          {/* Footer link */}
+          <p style={{ textAlign: "center", fontSize: 14, color: S.onSurfaceVar, marginTop: 16 }}>
             Don't have an account?{" "}
             <Link
               to="/register"
-              className="text-indigo-600 font-semibold hover:underline"
+              style={{ color: S.primary, fontWeight: 600, textDecoration: "none" }}
+              onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
+              onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
             >
-              Register
+              Register now
             </Link>
           </p>
-        </form>
+        </motion.div>
       </div>
-    </motion.div>
-  );
-};
 
-export default Login;
+      {/* Responsive: show left panel on wider screens */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        @media (min-width: 900px) {
+          .login-left-panel { display: flex !important; }
+        }
+      `}</style>
+    </div>
+  );
+}

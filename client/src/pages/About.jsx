@@ -1,168 +1,292 @@
 import { motion } from 'framer-motion';
-import { AlertTriangle, CheckCircle, Target } from 'lucide-react';
+import {
+  AlertTriangle, CheckCircle, Target,
+  LayoutGrid, Bell, GitMerge, TrendingUp, Shield
+} from 'lucide-react';
+import Footer from '../components/Footer';
+import { Link } from 'react-router-dom';
 
-const About = () => {
-  const problems = [
-    {
-      icon: <AlertTriangle className="w-6 h-6 text-red-500" />,
-      title: 'Manual Overtime Tracking',
-      description: 'Time-consuming spreadsheets and paper-based systems prone to errors and inconsistencies.'
-    },
-    {
-      icon: <AlertTriangle className="w-6 h-6 text-red-500" />,
-      title: 'Lack of Approval System',
-      description: 'No structured process for overtime approval, leading to unauthorized overtime claims.'
-    },
-    {
-      icon: <AlertTriangle className="w-6 h-6 text-red-500" />,
-      title: 'No Transparency',
-      description: 'Employees and managers lack visibility into overtime requests and approvals.'
-    }
-  ];
-
-  const solutions = [
-    {
-      icon: <CheckCircle className="w-6 h-6 text-green-500" />,
-      title: 'Structured Approval Workflow',
-      description: 'Automated dual approval system ensuring all overtime requests are properly reviewed.'
-    },
-    {
-      icon: <CheckCircle className="w-6 h-6 text-green-500" />,
-      title: 'Clear Tracking',
-      description: 'Real-time visibility into overtime requests, approvals, and historical data.'
-    },
-    {
-      icon: <CheckCircle className="w-6 h-6 text-green-500" />,
-      title: 'Smart Notifications',
-      description: 'Automated alerts keep everyone informed of request status and deadlines.'
-    }
-  ];
-
-  return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-50 to-white py-20">
-        <div className="container mx-auto px-4 max-w-4xl text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              About TimeFlow
-            </h1>
-            <p className="text-xl text-gray-600 leading-relaxed">
-              We're revolutionizing how companies manage overtime with our secure, efficient,
-              and user-friendly approval system. Built for modern workplaces that value
-              transparency, fairness, and productivity.
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Problem Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4 max-w-7xl">
-          <motion.div
-            className="text-center mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              The Problem
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Traditional overtime management creates inefficiencies and risks for both employees and employers
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {problems.map((problem, index) => (
-              <motion.div
-                key={index}
-                className="text-center"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
-              >
-                <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  {problem.icon}
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">{problem.title}</h3>
-                <p className="text-gray-600">{problem.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Solution Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4 max-w-7xl">
-          <motion.div
-            className="text-center mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Our Solution
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              TimeFlow addresses these challenges with a comprehensive, automated system
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {solutions.map((solution, index) => (
-              <motion.div
-                key={index}
-                className="text-center"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
-              >
-                <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  {solution.icon}
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">{solution.title}</h3>
-                <p className="text-gray-600">{solution.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Mission Section */}
-      <section className="py-20 bg-blue-600">
-        <div className="container mx-auto px-4 max-w-4xl text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6">
-              <Target className="w-10 h-10 text-blue-600" />
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-              Our Mission
-            </h2>
-            <p className="text-xl text-blue-100 leading-relaxed max-w-3xl mx-auto">
-              Our mission is to simplify workforce management by providing tools that make
-              overtime tracking transparent, approval processes efficient, and compliance effortless.
-              We believe in creating technology that serves both employees and employers equally.
-            </p>
-          </motion.div>
-        </div>
-      </section>
-    </div>
-  );
+/* ─── Design tokens: Luminous Efficiency ───── */
+const fadeUp = {
+  hidden: { opacity: 0, y: 28 },
+  show: (i = 0) => ({
+    opacity: 1, y: 0,
+    transition: { duration: 0.55, delay: i * 0.1, ease: 'easeOut' },
+  }),
 };
 
-export default About;
+const problems = [
+  {
+    icon: LayoutGrid,
+    title: 'Manual Tracking Issues',
+    description:
+      'Spreadsheets and paper logs lead to errors, lost data, and a fragmented view of resource allocation.',
+  },
+  {
+    icon: Bell,
+    title: 'No Transparency',
+    description:
+      'Without a centralized system, teams operate in silos — making it impossible to gauge true workload.',
+  },
+  {
+    icon: GitMerge,
+    title: 'Approval Bottlenecks',
+    description:
+      'Informal requests result in delayed payments, unrecorded overtime, and operational friction.',
+  },
+];
+
+const solutions = [
+  {
+    icon: CheckCircle,
+    title: 'Structured Approval Workflows',
+    description:
+      'We replace informal requests with automated, multi-tier approval routing. Every request has a clear path, designated approvers, and a permanent audit trail.',
+  },
+  {
+    icon: TrendingUp,
+    title: 'Clear Tracking & Dashboards',
+    description:
+      'Real-time dashboards provide instant visibility into all overtime activity — by team, department, or individual.',
+  },
+  {
+    icon: Shield,
+    title: 'Smart Notifications',
+    description:
+      'Automated alerts ensure pending actions are never overlooked, keeping the entire team perfectly in sync.',
+  },
+];
+
+const values = [
+  { label: 'Transparency', desc: 'Every decision is visible and documented.' },
+  { label: 'Efficiency', desc: 'Automate routine approvals, focus on what matters.' },
+  { label: 'Fairness', desc: 'Equitable, consistent rules for every employee.' },
+  { label: 'Compliance', desc: 'Audit-ready records built in from day one.' },
+];
+
+export default function About() {
+  return (
+    <div style={{ background: '#f9f9ff', minHeight: '100vh', fontFamily: 'Inter, system-ui, sans-serif' }}>
+
+      {/* ── HERO ───────────────────────────────────── */}
+      <section style={{ background: 'linear-gradient(145deg, #f0f4ff 0%, #f9f9ff 60%)', padding: '96px 24px 80px' }}>
+        <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
+          <motion.div initial="hidden" animate="show" variants={fadeUp}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#d8e2ff', borderRadius: 9999, padding: '6px 16px', marginBottom: 28 }}>
+              <Target size={14} color="#0058be" />
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#0058be', letterSpacing: '0.02em' }}>Our Story</span>
+            </div>
+            <h1 style={{ fontSize: 'clamp(2.2rem, 5vw, 3.2rem)', fontWeight: 700, color: '#191b23', lineHeight: 1.2, letterSpacing: '-0.02em', marginBottom: 24 }}>
+              About <span style={{ color: '#0058be' }}>TimeFlow</span>
+            </h1>
+            <p style={{ fontSize: 18, color: '#424754', lineHeight: 1.75, maxWidth: 640, margin: '0 auto' }}>
+              We build tools that respect your time. TimeFlow was created to eliminate the friction
+              between doing great work and managing the logistics around it — starting with overtime.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── MISSION STATEMENT ──────────────────────── */}
+      <section style={{ padding: '80px 24px', background: '#ffffff' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 64, alignItems: 'center' }}>
+          <motion.div
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            variants={fadeUp}
+          >
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#0058be', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Our Mission</div>
+            <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 700, color: '#191b23', letterSpacing: '-0.02em', marginBottom: 20, lineHeight: 1.25 }}>
+              Simplify workforce management — without compromise.
+            </h2>
+            <p style={{ fontSize: 16, color: '#424754', lineHeight: 1.75, marginBottom: 24 }}>
+              We believe administrative tasks shouldn't stand in the way of productivity.
+              By creating transparent, structured systems, we empower teams to focus on what truly matters.
+            </p>
+            <p style={{ fontSize: 16, color: '#424754', lineHeight: 1.75 }}>
+              TimeFlow was born from real frustration with the status quo — manual tracking,
+              opaque approvals, and a complete lack of accountability. We saw an opportunity
+              to build something genuinely better.
+            </p>
+          </motion.div>
+
+          {/* values grid */}
+          <motion.div
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            variants={fadeUp}
+            custom={1}
+            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}
+          >
+            {values.map((v, i) => (
+              <div
+                key={i}
+                style={{
+                  background: '#f2f3fd',
+                  border: '1px solid #e1e2ec',
+                  borderRadius: 16,
+                  padding: 28,
+                  transition: 'all 0.2s',
+                }}
+              >
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#0058be', marginBottom: 8 }}>{v.label}</div>
+                <div style={{ fontSize: 14, color: '#424754', lineHeight: 1.6 }}>{v.desc}</div>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── THE PROBLEM ───────────────────────────── */}
+      <section style={{ padding: '96px 24px', background: '#f2f3fd' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <motion.div
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            variants={fadeUp}
+            style={{ textAlign: 'center', marginBottom: 64 }}
+          >
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#ba1a1a', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>The Challenge</div>
+            <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.4rem)', fontWeight: 700, color: '#191b23', letterSpacing: '-0.02em', marginBottom: 16 }}>
+              Traditional Overtime Management Is Broken
+            </h2>
+            <p style={{ fontSize: 18, color: '#424754', maxWidth: 560, margin: '0 auto', lineHeight: 1.7 }}>
+              Transitioning from chaotic spreadsheets to clear, actionable workflows.
+            </p>
+          </motion.div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
+            {problems.map((p, i) => {
+              const Icon = p.icon;
+              return (
+                <motion.div
+                  key={i}
+                  initial="hidden"
+                  whileInView="show"
+                  viewport={{ once: true }}
+                  custom={i}
+                  variants={fadeUp}
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #e1e2ec',
+                    borderRadius: 16,
+                    padding: 32,
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+                  }}
+                >
+                  <div style={{ width: 52, height: 52, borderRadius: 14, background: '#ffdad6', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                    <Icon size={24} color="#ba1a1a" />
+                  </div>
+                  <h3 style={{ fontSize: 18, fontWeight: 600, color: '#191b23', marginBottom: 10 }}>{p.title}</h3>
+                  <p style={{ fontSize: 15, color: '#424754', lineHeight: 1.65 }}>{p.description}</p>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── OUR SOLUTION ──────────────────────────── */}
+      <section style={{ padding: '96px 24px', background: '#ffffff' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <motion.div
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            variants={fadeUp}
+            style={{ textAlign: 'center', marginBottom: 64 }}
+          >
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#0058be', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Our Approach</div>
+            <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.4rem)', fontWeight: 700, color: '#191b23', letterSpacing: '-0.02em', marginBottom: 16 }}>
+              How TimeFlow Solves It
+            </h2>
+            <p style={{ fontSize: 18, color: '#424754', maxWidth: 540, margin: '0 auto', lineHeight: 1.7 }}>
+              A comprehensive, automated system that addresses every pain point head-on.
+            </p>
+          </motion.div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
+            {solutions.map((s, i) => {
+              const Icon = s.icon;
+              return (
+                <motion.div
+                  key={i}
+                  initial="hidden"
+                  whileInView="show"
+                  viewport={{ once: true }}
+                  custom={i}
+                  variants={fadeUp}
+                  whileHover={{ y: -4, boxShadow: '0 8px 32px rgba(0,88,190,0.10)' }}
+                  style={{
+                    background: '#f9f9ff',
+                    border: '1px solid #e1e2ec',
+                    borderRadius: 16,
+                    padding: 32,
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+                    transition: 'all 0.25s',
+                  }}
+                >
+                  <div style={{ width: 52, height: 52, borderRadius: 14, background: '#d8e2ff', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                    <Icon size={24} color="#0058be" />
+                  </div>
+                  <h3 style={{ fontSize: 18, fontWeight: 600, color: '#191b23', marginBottom: 10 }}>{s.title}</h3>
+                  <p style={{ fontSize: 15, color: '#424754', lineHeight: 1.65 }}>{s.description}</p>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA BANNER ────────────────────────────── */}
+      <section style={{ padding: '80px 24px', background: 'linear-gradient(135deg, #0058be 0%, #004395 100%)' }}>
+        <div style={{ maxWidth: 700, margin: '0 auto', textAlign: 'center' }}>
+          <motion.div
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            variants={fadeUp}
+          >
+            <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.4rem)', fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em', marginBottom: 20 }}>
+              Ready to transform your workflow?
+            </h2>
+            <p style={{ fontSize: 18, color: '#adc6ff', lineHeight: 1.7, marginBottom: 36 }}>
+              Start your free trial today and see how TimeFlow can eliminate overtime management headaches.
+            </p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Link
+                to="/register"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 8,
+                  background: '#ffffff', color: '#0058be',
+                  padding: '13px 28px', borderRadius: 12,
+                  fontWeight: 700, fontSize: 16, textDecoration: 'none',
+                  boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
+                }}
+              >
+                Get Started Free
+              </Link>
+              <Link
+                to="/contact"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 8,
+                  background: 'transparent', color: '#ffffff',
+                  border: '1.5px solid rgba(255,255,255,0.4)',
+                  padding: '13px 28px', borderRadius: 12,
+                  fontWeight: 600, fontSize: 16, textDecoration: 'none',
+                }}
+              >
+                Talk to Sales
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      <Footer />
+    </div>
+  );
+}

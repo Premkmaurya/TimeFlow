@@ -3,7 +3,13 @@ import { useSelector, useDispatch } from "react-redux";
 import { motion } from "framer-motion";
 import EmployeeList from "./EmployeeList";
 import EmployeeDetails from "./EmployeeDetails";
-import { fetchEmployees, selectEmployees, selectLoading, approveRequest, rejectRequest } from "../../features/overtime/overtimeSlice";
+import {
+  fetchRequest,
+  selectEmployees,
+  selectLoading,
+  approveRequest,
+  rejectRequest,
+} from "../../features/overtime/overtimeSlice";
 
 export default function DashboardPanel() {
   const dispatch = useDispatch();
@@ -12,14 +18,14 @@ export default function DashboardPanel() {
   const [selectedId, setSelectedId] = useState(null);
 
   useEffect(() => {
-    dispatch(fetchEmployees());
+    dispatch(fetchRequest());
   }, [dispatch]);
 
   const selectedEmployee = employees.find((e) => e.id === selectedId);
+  
 
   const handleSelect = (id) => {
-    setSelectedId(id);
-    dispatch(markNotificationRead(id));
+    
   };
 
   const handleApprove = (reqId) => {
@@ -39,11 +45,19 @@ export default function DashboardPanel() {
       {/* Employee List Panel */}
       <div className="w-full md:w-1/3 lg:w-1/4 bg-white border-r border-slate-100 p-4 overflow-y-auto">
         <div className="font-bold text-lg text-slate-700 mb-4">Employees</div>
-        <EmployeeList employees={employees} selectedId={selectedId} onSelect={handleSelect} />
+        <EmployeeList
+          employees={employees}
+          selectedId={selectedId}
+          onSelect={handleSelect}
+        />
       </div>
       {/* Employee Details Panel */}
       <div className="flex-1 p-6">
-        <EmployeeDetails employee={selectedEmployee} onApprove={handleApprove} onReject={handleReject} />
+        <EmployeeDetails
+          employee={selectedEmployee}
+          onApprove={handleApprove}
+          onReject={handleReject}
+        />
       </div>
     </motion.div>
   );

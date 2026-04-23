@@ -4,12 +4,12 @@ import axios from 'axios';
 const API_URL = 'http://localhost:5000/api/overtime';
 
 // Fetch all employees with grouped requests
-export const fetchEmployees = createAsyncThunk('overtime/fetchEmployees', async (_, thunkAPI) => {
+export const fetchRequest = createAsyncThunk('overtime/fetchRequest', async () => {
     try {
-        const res = await axios.get(`${API_URL}/employees`, { withCredentials: true });
+        const res = await axios.get(`${API_URL}/my-requests`, { withCredentials: true });
         return res.data;
     } catch (error) {
-        return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
+        console.error(error);
     }
 });
 
@@ -54,32 +54,30 @@ const overtimeSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            .addCase(fetchEmployees.pending, (state) => {
+            .addCase(fetchRequest.pending, (state) => {
                 state.isLoading = true;
             })
-            .addCase(fetchEmployees.fulfilled, (state, action) => {
+            .addCase(fetchRequest.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.isSuccess = true;
                 state.employees = action.payload;
             })
-            .addCase(fetchEmployees.rejected, (state, action) => {
+            .addCase(fetchRequest.rejected, (state, action) => {
                 state.isLoading = false;
                 state.isError = true;
                 state.message = action.payload;
             })
             .addCase(approveRequest.fulfilled, (state, action) => {
-                // Remove approved request from employee's requests
                 const reqId = action.payload;
-                state.employees.forEach(emp => {
-                    emp.requests = emp.requests.map(r => r.id === reqId ? { ...r, status: 'approved' } : r);
-                });
+                state.employees = state.employees.map(r =>
+                    r.id === reqId ? { ...r, status: 'approved' } : r
+                );
             })
             .addCase(rejectRequest.fulfilled, (state, action) => {
-                // Remove rejected request from employee's requests
                 const reqId = action.payload;
-                state.employees.forEach(emp => {
-                    emp.requests = emp.requests.map(r => r.id === reqId ? { ...r, status: 'rejected' } : r);
-                });
+                state.employees = state.employees.map(r =>
+                    r.id === reqId ? { ...r, status: 'rejected' } : r
+                );
             });
     },
 });

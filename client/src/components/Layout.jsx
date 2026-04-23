@@ -2,8 +2,6 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getMe } from '../features/auth/authSlice';
 import { Outlet } from 'react-router-dom';
-import Navbar from './Navbar';
-
 
 const Layout = () => {
     const dispatch = useDispatch();
@@ -16,11 +14,8 @@ const Layout = () => {
     }, [dispatch]);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-sky-50 text-slate-800">
-            <Navbar />
-            <main className="container mx-auto px-4 py-8 max-w-7xl">
-                <Outlet />
-            </main>
+        <div style={{ minHeight: '100vh', background: '#f2f3fd' }}>
+            <Outlet />
         </div>
     );
 };

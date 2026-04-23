@@ -27,14 +27,16 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Public Routes */}
+        {/* Public Routes (with navbar) */}
         <Route path="/" element={<PublicLayout />}>
           <Route index element={<Home />} />
           <Route path="about" element={<About />} />
           <Route path="contact" element={<Contact />} />
-          <Route path="login" element={<Login />} />
-          <Route path="register" element={<Register />} />
         </Route>
+
+        {/* Auth Routes (no navbar) */}
+        <Route path="login" element={<Login />} />
+        <Route path="register" element={<Register />} />
 
         {/* Authenticated Routes */}
         <Route path="/" element={<Layout />}>
