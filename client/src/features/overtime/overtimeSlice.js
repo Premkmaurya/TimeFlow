@@ -22,6 +22,9 @@ export const fetchRequest = createAsyncThunk('overtime/fetchRequest', async () =
     }
 });
 
+// Get employee's requests
+
+
 // Approve request
 export const approveRequest = createAsyncThunk('overtime/approveRequest', async (reqId, thunkAPI) => {
     try {

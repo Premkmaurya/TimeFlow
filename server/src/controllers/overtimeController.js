@@ -142,6 +142,22 @@ const processRequest = async (req, res) => {
   }
 };
 
+// Fetch all overtime requests for a specific employee (for Authority)
+const getEmployeeRequests = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const requests = await OvertimeRequest.find({ user: id })
+      .sort({ createdAt: -1 })
+      .populate("user", "firstName lastName email")
+      .populate("manager", "firstName lastName")
+      .populate("hr", "firstName lastName");
+
+    res.status(200).json(requests);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
 // Fetch all Employees with their overtime stats (for Authority)
 const getAllEmployees = async (req, res) => {
   try {
@@ -174,4 +190,5 @@ module.exports = {
   getPendingRequests,
   processRequest,
   getAllEmployees,
+  getEmployeeRequests,
 };
