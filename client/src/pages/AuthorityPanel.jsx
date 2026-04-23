@@ -33,10 +33,12 @@ const S = {
 };
 
 const STATUS = {
-  approved: { label: "Approved", bg: "#dcfce7", color: "#15803d", icon: CheckCircle },
-  rejected: { label: "Rejected", bg: S.errorContainer, color: S.error, icon: XCircle },
-  pending: { label: "Pending", bg: "#fef3c7", color: "#92400e", icon: Clock3 },
-  pending_second: { label: "Pending 2nd", bg: "#ede9fe", color: "#5b21b6", icon: Clock3 },
+  approved:         { label: "Approved",          bg: "#dcfce7", color: "#15803d", icon: CheckCircle },
+  rejected:         { label: "Rejected",           bg: S.errorContainer, color: S.error, icon: XCircle },
+  pending:          { label: "Pending",            bg: "#fef3c7", color: "#92400e", icon: Clock3 },
+  pending_second:   { label: "Pending 2nd",        bg: "#ede9fe", color: "#5b21b6", icon: Clock3 },
+  manager_approved: { label: "Manager Approved",   bg: "#dbeafe", color: "#1d4ed8", icon: CheckCircle },
+  hr_approved:      { label: "HR Approved",        bg: "#f3e8ff", color: "#7c3aed", icon: CheckCircle },
 };
 const getStatus = (s) => STATUS[s] || STATUS.pending;
 
@@ -74,10 +76,20 @@ export default function AuthorityPanel() {
 
   const selected = employeeList.find((e) => e.id === selectedId);
 
+  /* ── role-based action visibility helper ── */
+  const canActOn = (reqStatus) => {
+    const role = user?.role;
+    if (role === "manager") return reqStatus === "pending" || reqStatus === "hr_approved";
+    if (role === "hr")      return reqStatus === "pending" || reqStatus === "manager_approved";
+    // authority / admin: can act on anything not yet fully approved/rejected
+    return reqStatus === "pending" || reqStatus === "manager_approved" || reqStatus === "hr_approved";
+  };
+
   /* summary stats */
   const totalEmployees = employeeList.length;
+  // Count requests that the current user still needs to act on
   const pendingCount = employeeList.reduce((n, e) =>
-    n + (e.requests || []).filter((r) => r.status === "pending").length, 0);
+    n + (e.requests || []).filter((r) => canActOn(r.status)).length, 0);
   const approvedHours = employeeList.reduce((n, e) =>
     n + (e.requests || []).filter((r) => r.status === "approved")
       .reduce((s, r) => s + Number(r.hours), 0), 0);
@@ -289,7 +301,8 @@ export default function AuthorityPanel() {
                           {(selected.requests || []).map((req, idx) => {
                             const st = getStatus(req.status);
                             const Icon = st.icon;
-                            const isPending = req.status === "pending" || req.status === "pending_second";
+                            // Show actions based on current user's role and the request's current status
+                            const isPending = canActOn(req.status);
                             return (
                               <tr key={req.id || idx}
                                 style={{ borderBottom: `1px solid ${S.outlineVar}`, transition: "background 0.15s" }}

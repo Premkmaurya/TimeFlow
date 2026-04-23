@@ -175,6 +175,15 @@ const getAllEmployees = async (req, res) => {
           totalOvertimeHours,
           hasNewRequest,
           status,
+          requests: requests.map((r) => ({
+            id: r._id,
+            requestDate: r.requestDate,
+            hours: r.hours,
+            reason: r.reason,
+            status: r.status,
+            rejectionReason: r.rejectionReason,
+            createdAt: r.createdAt,
+          })),
         };
       }),
     );

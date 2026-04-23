@@ -98,12 +98,26 @@ const overtimeSlice = createSlice({
                 state.employees = state.employees.map(r =>
                     r.id === reqId ? { ...r, status: 'approved' } : r
                 );
+                // Also update the authority panel's nested requests
+                state.employeeList = state.employeeList.map(emp => ({
+                    ...emp,
+                    requests: (emp.requests || []).map(r =>
+                        String(r.id) === String(reqId) ? { ...r, status: 'approved' } : r
+                    ),
+                }));
             })
             .addCase(rejectRequest.fulfilled, (state, action) => {
                 const reqId = action.payload;
                 state.employees = state.employees.map(r =>
                     r.id === reqId ? { ...r, status: 'rejected' } : r
                 );
+                // Also update the authority panel's nested requests
+                state.employeeList = state.employeeList.map(emp => ({
+                    ...emp,
+                    requests: (emp.requests || []).map(r =>
+                        String(r.id) === String(reqId) ? { ...r, status: 'rejected' } : r
+                    ),
+                }));
             });
     },
 });

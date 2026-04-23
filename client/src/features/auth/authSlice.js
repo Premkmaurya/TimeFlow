@@ -38,7 +38,14 @@ export const getMe = createAsyncThunk("auth/getMe", async (_, thunkAPI) => {
     }
 });
 
-export const logout = createAsyncThunk("auth/logout", async () => {
+export const logout = createAsyncThunk("auth/logout", async (_, thunkAPI) => {
+  try {
+    // Tell the server to blacklist the token in Redis and clear the cookie
+    await axios.post(`${API_URL}/logout`, {}, { withCredentials: true });
+  } catch (error) {
+    // Even if the server call fails, we still clear local state
+    console.warn("[Auth] Logout API error:", error.message);
+  }
   localStorage.removeItem("user");
 });
 
