@@ -12,7 +12,11 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:5173","https://time-flow-xi.vercel.app"],
+    origin: [
+      "http://localhost:5173",
+      "https://time-flow-xi.vercel.app",
+      "https://time-flow-5sbe.vercel.app"
+    ].filter(Boolean),
     credentials: true,
   }),
 );
