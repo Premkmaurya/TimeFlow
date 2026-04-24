@@ -9,9 +9,23 @@ import {
 } from "../features/overtime/overtimeSlice";
 import { logout, reset as authReset } from "../features/auth/authSlice";
 import {
-  Users, LogOut, CheckCircle, XCircle, Clock3,
-  ChevronRight, Inbox, Search, BarChart2, Clock,
-  TrendingUp, UserCheck, Menu, X, Calendar, Download, FileText
+  Users,
+  LogOut,
+  CheckCircle,
+  XCircle,
+  Clock3,
+  ChevronRight,
+  Inbox,
+  Search,
+  BarChart2,
+  Clock,
+  TrendingUp,
+  UserCheck,
+  Menu,
+  X,
+  Calendar,
+  Download,
+  FileText,
 } from "lucide-react";
 
 /* ─── Design tokens ─────────────────────── */
@@ -33,17 +47,47 @@ const S = {
 };
 
 const STATUS = {
-  approved:         { label: "Approved",          bg: "#dcfce7", color: "#15803d", icon: CheckCircle },
-  rejected:         { label: "Rejected",           bg: S.errorContainer, color: S.error, icon: XCircle },
-  pending:          { label: "Pending",            bg: "#fef3c7", color: "#92400e", icon: Clock3 },
-  pending_second:   { label: "Pending 2nd",        bg: "#ede9fe", color: "#5b21b6", icon: Clock3 },
-  manager_approved: { label: "Manager Approved",   bg: "#dbeafe", color: "#1d4ed8", icon: CheckCircle },
-  hr_approved:      { label: "HR Approved",        bg: "#f3e8ff", color: "#7c3aed", icon: CheckCircle },
+  approved: {
+    label: "Approved",
+    bg: "#dcfce7",
+    color: "#15803d",
+    icon: CheckCircle,
+  },
+  rejected: {
+    label: "Rejected",
+    bg: S.errorContainer,
+    color: S.error,
+    icon: XCircle,
+  },
+  pending: { label: "Pending", bg: "#fef3c7", color: "#92400e", icon: Clock3 },
+  pending_second: {
+    label: "Pending 2nd",
+    bg: "#ede9fe",
+    color: "#5b21b6",
+    icon: Clock3,
+  },
+  manager_approved: {
+    label: "Manager Approved",
+    bg: "#dbeafe",
+    color: "#1d4ed8",
+    icon: CheckCircle,
+  },
+  hr_approved: {
+    label: "HR Approved",
+    bg: "#f3e8ff",
+    color: "#7c3aed",
+    icon: CheckCircle,
+  },
 };
 const getStatus = (s) => STATUS[s] || STATUS.pending;
 
 const initials = (name = "") =>
-  name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
+  name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
 export default function AuthorityPanel() {
   const dispatch = useDispatch();
@@ -55,7 +99,9 @@ export default function AuthorityPanel() {
   const [selectedId, setSelectedId] = useState(null);
   const [search, setSearch] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
+  const [selectedMonth, setSelectedMonth] = useState(
+    new Date().toISOString().slice(0, 7),
+  ); // YYYY-MM
 
   /* ── original logic ── */
   useEffect(() => {
@@ -73,41 +119,45 @@ export default function AuthorityPanel() {
   /* ── end original logic ── */
 
   const filtered = employeeList.filter((e) =>
-    (e.name || e.email || "").toLowerCase().includes(search.toLowerCase())
+    (e.name || e.email || "").toLowerCase().includes(search.toLowerCase()),
   );
 
   const selected = employeeList.find((e) => e.id === selectedId);
 
   /* ── filtering requests by month ── */
-  const filteredRequests = selected?.requests?.filter(r => {
-    const rDate = new Date(r.requestDate || r.date);
-    const rMonthStr = rDate.toISOString().slice(0, 7); // YYYY-MM
-    return rMonthStr === selectedMonth;
-  }) || [];
+  const filteredRequests =
+    selected?.requests?.filter((r) => {
+      const rDate = new Date(r.requestDate || r.date);
+      const rMonthStr = rDate.toISOString().slice(0, 7); // YYYY-MM
+      return rMonthStr === selectedMonth;
+    }) || [];
 
   const monthlyApprovedHours = filteredRequests
-    .filter(r => r.status === "approved")
+    .filter((r) => r.status === "approved")
     .reduce((sum, r) => sum + Number(r.hours), 0);
 
   const downloadCSV = () => {
     if (!selected || filteredRequests.length === 0) return;
-    
+
     const headers = ["Date", "Hours", "Reason", "Status", "Manager/HR Comment"];
-    const rows = filteredRequests.map(r => [
+    const rows = filteredRequests.map((r) => [
       new Date(r.requestDate || r.date).toLocaleDateString("en-IN"),
       r.hours,
       `"${r.reason.replace(/"/g, '""')}"`,
       r.status,
-      `"${(r.rejectionReason || "").replace(/"/g, '""')}"`
+      `"${(r.rejectionReason || "").replace(/"/g, '""')}"`,
     ]);
 
-    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+    const csvContent = [headers, ...rows].map((e) => e.join(",")).join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
-    
+
     link.setAttribute("href", url);
-    link.setAttribute("download", `Overtime_${selected.name.replace(/\s+/g, '_')}_${selectedMonth}.csv`);
+    link.setAttribute(
+      "download",
+      `Overtime_${selected.name.replace(/\s+/g, "_")}_${selectedMonth}.csv`,
+    );
     link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
@@ -117,123 +167,407 @@ export default function AuthorityPanel() {
   /* ── role-based action visibility helper ── */
   const canActOn = (reqStatus) => {
     const role = user?.role;
-    if (role === "manager") return reqStatus === "pending" || reqStatus === "hr_approved";
-    if (role === "hr")      return reqStatus === "pending" || reqStatus === "manager_approved";
+    if (role === "manager")
+      return reqStatus === "pending" || reqStatus === "hr_approved";
+    if (role === "hr")
+      return reqStatus === "pending" || reqStatus === "manager_approved";
     // authority / admin: can act on anything not yet fully approved/rejected
-    return reqStatus === "pending" || reqStatus === "manager_approved" || reqStatus === "hr_approved";
+    return (
+      reqStatus === "pending" ||
+      reqStatus === "manager_approved" ||
+      reqStatus === "hr_approved"
+    );
   };
 
   /* summary stats */
   const totalEmployees = employeeList.length;
   // Count requests that the current user still needs to act on
-  const pendingCount = employeeList.reduce((n, e) =>
-    n + (e.requests || []).filter((r) => canActOn(r.status)).length, 0);
-  const approvedHours = employeeList.reduce((n, e) =>
-    n + (e.requests || []).filter((r) => r.status === "approved")
-      .reduce((s, r) => s + Number(r.hours), 0), 0);
+  const pendingCount = employeeList.reduce(
+    (n, e) => n + (e.requests || []).filter((r) => canActOn(r.status)).length,
+    0,
+  );
+  const approvedHours = employeeList.reduce(
+    (n, e) =>
+      n +
+      (e.requests || [])
+        .filter((r) => r.status === "approved")
+        .reduce((s, r) => s + Number(r.hours), 0),
+    0,
+  );
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: S.surfaceContainerLow, fontFamily: S.font }}>
-
+    <div
+      style={{
+        display: "flex",
+        minHeight: "100vh",
+        background: S.surfaceContainerLow,
+        fontFamily: S.font,
+      }}
+    >
       {/* Mobile overlay */}
       {sidebarOpen && (
-        <div onClick={() => setSidebarOpen(false)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 19 }}
+        <div
+          onClick={() => setSidebarOpen(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.35)",
+            zIndex: 19,
+          }}
         />
       )}
 
       {/* ── SIDEBAR ── */}
-      <aside className={`auth-sidebar${sidebarOpen ? ' auth-sidebar--open' : ''}`} style={{
-        width: 240, flexShrink: 0, background: S.surfaceLowest,
-        borderRight: `1px solid ${S.outlineVar}`,
-        display: "flex", flexDirection: "column",
-        padding: "24px 12px", position: "sticky", top: 0, height: "100vh",
-        boxSizing: "border-box", zIndex: 20,
-      }}>
+      <aside
+        className={`auth-sidebar${sidebarOpen ? " auth-sidebar--open" : ""}`}
+        style={{
+          width: 240,
+          flexShrink: 0,
+          background: S.surfaceLowest,
+          borderRight: `1px solid ${S.outlineVar}`,
+          display: "flex",
+          flexDirection: "column",
+          padding: "24px 12px",
+          position: "sticky",
+          top: 0,
+          height: "100vh",
+          boxSizing: "border-box",
+          zIndex: 20,
+        }}
+      >
         {/* Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 8px", marginBottom: 32 }}>
-          <div style={{ width: 32, height: 32, background: S.primary, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "0 8px",
+            marginBottom: 32,
+          }}
+        >
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              background: S.primary,
+              borderRadius: 8,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <svg viewBox="0 0 28 28" fill="none" width="22" height="22">
-              <circle cx="14" cy="14" r="8" stroke="white" strokeWidth="2.5" fill="none" />
-              <path d="M14 8v6l4 2" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+              <circle
+                cx="14"
+                cy="14"
+                r="8"
+                stroke="white"
+                strokeWidth="2.5"
+                fill="none"
+              />
+              <path
+                d="M14 8v6l4 2"
+                stroke="white"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
             </svg>
           </div>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: S.onSurface, letterSpacing: "-0.02em", lineHeight: 1 }}>TimeFlow</div>
-            <div style={{ fontSize: 10, color: S.onSurfaceVar, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.06em" }}>Management System</div>
+            <div
+              style={{
+                fontSize: 15,
+                fontWeight: 800,
+                color: S.onSurface,
+                letterSpacing: "-0.02em",
+                lineHeight: 1,
+              }}
+            >
+              TimeFlow
+            </div>
+            <div
+              style={{
+                fontSize: 10,
+                color: S.onSurfaceVar,
+                fontWeight: 500,
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+              }}
+            >
+              Management System
+            </div>
           </div>
         </div>
 
         {/* Nav */}
         <nav style={{ flex: 1 }}>
           {/* Employee list */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}
-            style={{ background: S.surfaceLowest, border: `1px solid ${S.outlineVar}`, borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 10px rgba(0,0,0,0.04)", display: "flex", flexDirection: "column" }}>
-            <div style={{ padding: "16px 16px 12px", borderBottom: `1px solid ${S.outlineVar}` }}>
-              <h2 style={{ fontSize: 15, fontWeight: 700, color: S.onSurface, margin: 0, marginBottom: 10 }}>Employees</h2>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            style={{
+              background: S.surfaceLowest,
+              border: `1px solid ${S.outlineVar}`,
+              borderRadius: 16,
+              overflow: "hidden",
+              boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <div
+              style={{
+                padding: "16px 16px 12px",
+                borderBottom: `1px solid ${S.outlineVar}`,
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: 15,
+                  fontWeight: 700,
+                  color: S.onSurface,
+                  margin: 0,
+                  marginBottom: 10,
+                }}
+              >
+                Employees
+              </h2>
               {/* Search */}
               <div style={{ position: "relative" }}>
-                <Search size={14} color={S.onSurfaceVar} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)" }} />
+                <Search
+                  size={14}
+                  color={S.onSurfaceVar}
+                  style={{
+                    position: "absolute",
+                    left: 10,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                  }}
+                />
                 <input
                   placeholder="Search employees…"
                   value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  style={{ width: "100%", padding: "8px 10px 8px 30px", border: `1.5px solid ${S.outline}`, borderRadius: 10, fontSize: 13, fontFamily: S.font, color: S.onSurface, background: S.surfaceContainerLow, outline: "none", boxSizing: "border-box" }}
+                  onChange={(e) => setSearch(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "8px 10px 8px 30px",
+                    border: `1.5px solid ${S.outline}`,
+                    borderRadius: 10,
+                    fontSize: 13,
+                    fontFamily: S.font,
+                    color: S.onSurface,
+                    background: S.surfaceContainerLow,
+                    outline: "none",
+                    boxSizing: "border-box",
+                  }}
                 />
               </div>
             </div>
             <div style={{ flex: 1, overflowY: "auto", padding: 8 }}>
               {isLoading ? (
-                <div style={{ padding: 24, textAlign: "center", color: S.onSurfaceVar, fontSize: 13 }}>Loading…</div>
+                <div
+                  style={{
+                    padding: 24,
+                    textAlign: "center",
+                    color: S.onSurfaceVar,
+                    fontSize: 13,
+                  }}
+                >
+                  Loading…
+                </div>
               ) : filtered.length === 0 ? (
-                <div style={{ padding: 24, textAlign: "center", color: S.onSurfaceVar, fontSize: 13 }}>No employees found</div>
-              ) : filtered.map((emp) => {
-                const pending = (emp.requests || []).filter(r => canActOn(r.status)).length;
-                const active = selectedId === emp.id;
-                return (
-                  <button key={emp.id} onClick={() => setSelectedId(emp.id)}
-                    style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "10px 12px", borderRadius: 12, border: `1.5px solid ${active ? S.primary : "transparent"}`, background: active ? S.primaryLight : "transparent", cursor: "pointer", fontFamily: S.font, textAlign: "left", marginBottom: 4, transition: "all 0.15s" }}
-                    onMouseEnter={e => { if (!active) e.currentTarget.style.background = S.surfaceContainerLow; }}
-                    onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}
-                  >
-                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: active ? S.primary : S.surfaceContainer, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: active ? "#fff" : S.onSurfaceVar }}>{initials(emp.name)}</span>
-                    </div>
-                    <div style={{ flex: 1, overflow: "hidden" }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: active ? S.primary : S.onSurface, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{emp.name}</div>
-                      <div style={{ fontSize: 11, color: S.onSurfaceVar, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{emp.email}</div>
-                    </div>
-                    {pending > 0 && (
-                      <span style={{ background: "#fef3c7", color: "#92400e", fontSize: 11, fontWeight: 700, borderRadius: 99, padding: "2px 7px", flexShrink: 0 }}>{pending}</span>
-                    )}
-                    <ChevronRight size={14} color={S.onSurfaceVar} />
-                  </button>
-                );
-              })}
+                <div
+                  style={{
+                    padding: 24,
+                    textAlign: "center",
+                    color: S.onSurfaceVar,
+                    fontSize: 13,
+                  }}
+                >
+                  No employees found
+                </div>
+              ) : (
+                filtered.map((emp) => {
+                  const pending = (emp.requests || []).filter((r) =>
+                    canActOn(r.status),
+                  ).length;
+                  const active = selectedId === emp.id;
+                  return (
+                    <button
+                      key={emp.id}
+                      onClick={() => setSelectedId(emp.id)}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        width: "100%",
+                        padding: "10px 12px",
+                        borderRadius: 12,
+                        border: `1.5px solid ${active ? S.primary : "transparent"}`,
+                        background: active ? S.primaryLight : "transparent",
+                        cursor: "pointer",
+                        fontFamily: S.font,
+                        textAlign: "left",
+                        marginBottom: 4,
+                        transition: "all 0.15s",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!active)
+                          e.currentTarget.style.background =
+                            S.surfaceContainerLow;
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!active)
+                          e.currentTarget.style.background = "transparent";
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: "50%",
+                          background: active ? S.primary : S.surfaceContainer,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: 12,
+                            fontWeight: 700,
+                            color: active ? "#fff" : S.onSurfaceVar,
+                          }}
+                        >
+                          {initials(emp.name)}
+                        </span>
+                      </div>
+                      <div style={{ flex: 1, overflow: "hidden" }}>
+                        <div
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: active ? S.primary : S.onSurface,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {emp.name}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 11,
+                            color: S.onSurfaceVar,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {emp.email}
+                        </div>
+                      </div>
+                      {pending > 0 && (
+                        <span
+                          style={{
+                            background: "#fef3c7",
+                            color: "#92400e",
+                            fontSize: 11,
+                            fontWeight: 700,
+                            borderRadius: 99,
+                            padding: "2px 7px",
+                            flexShrink: 0,
+                          }}
+                        >
+                          {pending}
+                        </span>
+                      )}
+                      <ChevronRight size={14} color={S.onSurfaceVar} />
+                    </button>
+                  );
+                })
+              )}
             </div>
           </motion.div>
         </nav>
 
         {/* User + logout */}
         <div style={{ borderTop: `1px solid ${S.outlineVar}`, paddingTop: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", marginBottom: 8 }}>
-            <div style={{ width: 32, height: 32, borderRadius: "50%", background: S.primaryLight, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "8px 12px",
+              marginBottom: 8,
+            }}
+          >
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                background: S.primaryLight,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
               <span style={{ fontSize: 12, fontWeight: 700, color: S.primary }}>
                 {initials(`${user?.firstName} ${user?.lastName}`)}
               </span>
             </div>
             <div style={{ overflow: "hidden" }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: S.onSurface, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <div
+                style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: S.onSurface,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
                 {user?.firstName} {user?.lastName}
               </div>
-              <div style={{ fontSize: 11, color: S.onSurfaceVar, textTransform: "capitalize" }}>{user?.role}</div>
+              <div
+                style={{
+                  fontSize: 11,
+                  color: S.onSurfaceVar,
+                  textTransform: "capitalize",
+                }}
+              >
+                {user?.role}
+              </div>
             </div>
           </div>
           <button
             onClick={onLogout}
-            style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, border: "none", background: "transparent", color: S.error, fontWeight: 500, fontSize: 14, cursor: "pointer", width: "100%", fontFamily: S.font, transition: "all 0.15s" }}
-            onMouseEnter={e => e.currentTarget.style.background = S.errorContainer}
-            onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "10px 12px",
+              borderRadius: 10,
+              border: "none",
+              background: "transparent",
+              color: S.error,
+              fontWeight: 500,
+              fontSize: 14,
+              cursor: "pointer",
+              width: "100%",
+              fontFamily: S.font,
+              transition: "all 0.15s",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.background = S.errorContainer)
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.background = "transparent")
+            }
           >
             <LogOut size={18} /> Log Out
           </button>
@@ -241,30 +575,91 @@ export default function AuthorityPanel() {
       </aside>
 
       {/* ── MAIN ── */}
-      <main className={`auth-main${sidebarOpen ? ' auth-main--shifted' : ''}`} style={{
-        flex: 1, padding: "32px 36px", overflowY: "auto",
-        transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1)',
-      }}>
-
+      <main
+        className={`auth-main${sidebarOpen ? " auth-main--shifted" : ""}`}
+        style={{
+          flex: 1,
+          padding: "32px 36px",
+          overflowY: "auto",
+          transition: "transform 0.28s cubic-bezier(0.4,0,0.2,1)",
+        }}
+      >
         {/* Mobile top bar */}
-        <div className="auth-mobile-topbar" style={{ display: 'none', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-          <button onClick={() => setSidebarOpen(v => !v)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, fontWeight: 700, color: S.onSurface, fontFamily: S.font }}
+        <div
+          className="auth-mobile-topbar"
+          style={{
+            display: "none",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 20,
+          }}
+        >
+          <button
+            onClick={() => setSidebarOpen((v) => !v)}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              fontSize: 16,
+              fontWeight: 700,
+              color: S.onSurface,
+              fontFamily: S.font,
+            }}
           >
-            <svg viewBox="0 0 28 28" fill="none" width="22" height="22"><circle cx="14" cy="14" r="8" stroke={S.primary} strokeWidth="2.5" fill="none"/><path d="M14 8v6l4 2" stroke={S.primary} strokeWidth="2.5" strokeLinecap="round"/></svg>
+            <svg viewBox="0 0 28 28" fill="none" width="22" height="22">
+              <circle
+                cx="14"
+                cy="14"
+                r="8"
+                stroke={S.primary}
+                strokeWidth="2.5"
+                fill="none"
+              />
+              <path
+                d="M14 8v6l4 2"
+                stroke={S.primary}
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+            </svg>
             TimeFlow
           </button>
-          <button onClick={() => setSidebarOpen(v => !v)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: S.onSurface, padding: 4, display: 'flex', alignItems: 'center' }}
+          <button
+            onClick={() => setSidebarOpen((v) => !v)}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: S.onSurface,
+              padding: 4,
+              display: "flex",
+              alignItems: "center",
+            }}
           >
             {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
 
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-          style={{ marginBottom: 28 }}>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: S.onSurface, letterSpacing: "-0.02em", margin: 0, marginBottom: 4 }}>
+        <motion.div
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          style={{ marginBottom: 28 }}
+        >
+          <h1
+            style={{
+              fontSize: 24,
+              fontWeight: 700,
+              color: S.onSurface,
+              letterSpacing: "-0.02em",
+              margin: 0,
+              marginBottom: 4,
+            }}
+          >
             Team Approvals
           </h1>
           <p style={{ fontSize: 14, color: S.onSurfaceVar, margin: 0 }}>
@@ -273,25 +668,104 @@ export default function AuthorityPanel() {
         </motion.div>
 
         {/* Stat cards */}
-        <div className="auth-stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 28 }}>
+        <div
+          className="auth-stat-grid"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: 16,
+            marginBottom: 28,
+          }}
+        >
           {[
-            { label: "Total Employees", value: isLoading ? "—" : totalEmployees, icon: UserCheck, iconBg: S.primaryLight, iconColor: S.primary, sub: "In your team" },
-            { label: "Pending Actions", value: isLoading ? "—" : pendingCount, icon: Clock3, iconBg: "#fef3c7", iconColor: "#92400e", sub: "Awaiting your review" },
-            { label: "Approved Hours", value: isLoading ? "—" : `${approvedHours}h`, icon: TrendingUp, iconBg: "#dcfce7", iconColor: "#15803d", sub: "Total this period" },
+            {
+              label: "Total Employees",
+              value: isLoading ? "—" : totalEmployees,
+              icon: UserCheck,
+              iconBg: S.primaryLight,
+              iconColor: S.primary,
+              sub: "In your team",
+            },
+            {
+              label: "Pending Actions",
+              value: isLoading ? "—" : pendingCount,
+              icon: Clock3,
+              iconBg: "#fef3c7",
+              iconColor: "#92400e",
+              sub: "Awaiting your review",
+            },
+            {
+              label: "Approved Hours",
+              value: isLoading ? "—" : `${approvedHours}h`,
+              icon: TrendingUp,
+              iconBg: "#dcfce7",
+              iconColor: "#15803d",
+              sub: "Total this period",
+            },
           ].map((c, i) => {
             const Icon = c.icon;
             return (
-              <motion.div key={i}
-                initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: i * 0.07 }}
-                style={{ background: S.surfaceLowest, border: `1px solid ${S.outlineVar}`, borderRadius: 16, padding: "20px", boxShadow: "0 2px 10px rgba(0,0,0,0.04)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: S.onSurfaceVar, textTransform: "uppercase", letterSpacing: "0.06em" }}>{c.label}</div>
-                  <div style={{ width: 34, height: 34, borderRadius: 10, background: c.iconBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: i * 0.07 }}
+                style={{
+                  background: S.surfaceLowest,
+                  border: `1px solid ${S.outlineVar}`,
+                  borderRadius: 16,
+                  padding: "20px",
+                  boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    marginBottom: 12,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: S.onSurfaceVar,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.06em",
+                    }}
+                  >
+                    {c.label}
+                  </div>
+                  <div
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: 10,
+                      background: c.iconBg,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
                     <Icon size={17} color={c.iconColor} />
                   </div>
                 </div>
-                <div style={{ fontSize: 28, fontWeight: 800, color: S.onSurface, letterSpacing: "-0.02em", lineHeight: 1, marginBottom: 4 }}>{c.value}</div>
-                <div style={{ fontSize: 12, color: S.onSurfaceVar }}>{c.sub}</div>
+                <div
+                  style={{
+                    fontSize: 28,
+                    fontWeight: 800,
+                    color: S.onSurface,
+                    letterSpacing: "-0.02em",
+                    lineHeight: 1,
+                    marginBottom: 4,
+                  }}
+                >
+                  {c.value}
+                </div>
+                <div style={{ fontSize: 12, color: S.onSurfaceVar }}>
+                  {c.sub}
+                </div>
               </motion.div>
             );
           })}
@@ -300,58 +774,215 @@ export default function AuthorityPanel() {
         {/* Content: employee list + detail */}
         <div>
           {/* Detail panel */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.25 }}
-            style={{ background: S.surfaceLowest, border: `1px solid ${S.outlineVar}`, borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 10px rgba(0,0,0,0.04)" }}>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.25 }}
+            style={{
+              background: S.surfaceLowest,
+              border: `1px solid ${S.outlineVar}`,
+              borderRadius: 16,
+              overflow: "hidden",
+              boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
+            }}
+          >
             <AnimatePresence mode="wait">
               {!selected ? (
-                <motion.div key="empty"
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  style={{ height: "100%", minHeight: 400, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 48 }}>
-                  <div style={{ width: 56, height: 56, borderRadius: "50%", background: S.surfaceContainer, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  style={{
+                    height: "100%",
+                    minHeight: 400,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: 48,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 56,
+                      height: 56,
+                      borderRadius: "50%",
+                      background: S.surfaceContainer,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginBottom: 16,
+                    }}
+                  >
                     <Users size={24} color={S.onSurfaceVar} />
                   </div>
-                  <h3 style={{ fontSize: 16, fontWeight: 600, color: S.onSurface, margin: 0, marginBottom: 8 }}>Select an Employee</h3>
-                  <p style={{ fontSize: 14, color: S.onSurfaceVar, margin: 0, textAlign: "center" }}>
-                    Choose an employee from the list to review their overtime requests.
+                  <h3
+                    style={{
+                      fontSize: 16,
+                      fontWeight: 600,
+                      color: S.onSurface,
+                      margin: 0,
+                      marginBottom: 8,
+                    }}
+                  >
+                    Select an Employee
+                  </h3>
+                  <p
+                    style={{
+                      fontSize: 14,
+                      color: S.onSurfaceVar,
+                      margin: 0,
+                      textAlign: "center",
+                    }}
+                  >
+                    Choose an employee from the list to review their overtime
+                    requests.
                   </p>
                 </motion.div>
               ) : (
-                <motion.div key={selected.id}
-                  initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
+                <motion.div
+                  key={selected.id}
+                  initial={{ opacity: 0, x: 16 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0 }}
                   transition={{ duration: 0.25 }}
-                  style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    height: "100%",
+                  }}
+                >
                   {/* Employee header */}
-                  <div className="auth-emp-header" style={{ padding: "20px 24px", borderBottom: `1px solid ${S.outlineVar}`, display: "flex", alignItems: "center", gap: 14 }}>
-                    <div style={{ width: 48, height: 48, borderRadius: "50%", background: S.primaryLight, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <span style={{ fontSize: 16, fontWeight: 700, color: S.primary }}>{initials(selected.name)}</span>
+                  <div
+                    className="auth-emp-header"
+                    style={{
+                      padding: "20px 24px",
+                      borderBottom: `1px solid ${S.outlineVar}`,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 14,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: "50%",
+                        background: S.primaryLight,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 16,
+                          fontWeight: 700,
+                          color: S.primary,
+                        }}
+                      >
+                        {initials(selected.name)}
+                      </span>
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 17, fontWeight: 700, color: S.onSurface, letterSpacing: "-0.01em" }}>{selected.name}</div>
-                      <div style={{ fontSize: 13, color: S.onSurfaceVar }}>{selected.email}</div>
+                      <div
+                        style={{
+                          fontSize: 17,
+                          fontWeight: 700,
+                          color: S.onSurface,
+                          letterSpacing: "-0.01em",
+                        }}
+                      >
+                        {selected.name}
+                      </div>
+                      <div style={{ fontSize: 13, color: S.onSurfaceVar }}>
+                        {selected.email}
+                      </div>
                     </div>
                     {/* Mini stats & Controls */}
-                    <div className="auth-emp-stats" style={{ display: "flex", gap: 16, alignItems: "center" }}>
+                    <div
+                      className="auth-emp-stats"
+                      style={{ display: "flex", gap: 16, alignItems: "center" }}
+                    >
                       {/* Month selector */}
-                      <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 8, background: S.surfaceContainerLow, padding: "4px 10px", borderRadius: 10, border: `1px solid ${S.outlineVar}` }}>
+                      <div
+                        style={{
+                          position: "relative",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          background: S.surfaceContainerLow,
+                          padding: "4px 10px",
+                          borderRadius: 10,
+                          border: `1px solid ${S.outlineVar}`,
+                        }}
+                      >
                         <Calendar size={14} color={S.primary} />
                         <input
                           type="month"
                           value={selectedMonth}
                           onChange={(e) => setSelectedMonth(e.target.value)}
-                          style={{ border: "none", background: "transparent", fontSize: 13, fontWeight: 600, color: S.onSurface, fontFamily: S.font, outline: "none", cursor: "pointer" }}
+                          style={{
+                            border: "none",
+                            background: "transparent",
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: S.onSurface,
+                            fontFamily: S.font,
+                            outline: "none",
+                            cursor: "pointer",
+                          }}
                         />
                       </div>
 
-                      <div style={{ width: 1, height: 24, background: S.outlineVar }} />
+                      <div
+                        style={{
+                          width: 1,
+                          height: 24,
+                          background: S.outlineVar,
+                        }}
+                      />
 
                       {[
-                        { label: "Total Hours", value: `${monthlyApprovedHours}h`, color: S.primary, sub: "Selected Month" },
-                        { label: "Requests", value: filteredRequests.length, color: S.onSurface, sub: "Filtered" },
+                        {
+                          label: "Total Hours",
+                          value: `${monthlyApprovedHours}h`,
+                          color: S.primary,
+                          sub: "Selected Month",
+                        },
+                        {
+                          label: "Requests",
+                          value: filteredRequests.length,
+                          color: S.onSurface,
+                          sub: "Filtered",
+                        },
                       ].map((st, i) => (
                         <div key={i} style={{ textAlign: "center" }}>
-                          <div style={{ fontSize: 18, fontWeight: 800, color: st.color, letterSpacing: "-0.02em", lineHeight: 1 }}>{st.value}</div>
-                          <div style={{ fontSize: 10, color: S.onSurfaceVar, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{st.label}</div>
+                          <div
+                            style={{
+                              fontSize: 18,
+                              fontWeight: 800,
+                              color: st.color,
+                              letterSpacing: "-0.02em",
+                              lineHeight: 1,
+                            }}
+                          >
+                            {st.value}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 10,
+                              color: S.onSurfaceVar,
+                              fontWeight: 600,
+                              textTransform: "uppercase",
+                              letterSpacing: "0.05em",
+                              marginTop: 2,
+                            }}
+                          >
+                            {st.label}
+                          </div>
                         </div>
                       ))}
 
@@ -359,11 +990,38 @@ export default function AuthorityPanel() {
                         onClick={downloadCSV}
                         disabled={filteredRequests.length === 0}
                         title="Download CSV"
-                        style={{ marginLeft: 8, display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10, border: "none", background: filteredRequests.length === 0 ? S.surfaceContainer : S.primary, color: "#fff", fontWeight: 600, fontSize: 13, cursor: filteredRequests.length === 0 ? "not-allowed" : "pointer", transition: "all 0.2s" }}
-                        onMouseEnter={e => { if(filteredRequests.length > 0) e.currentTarget.style.background = S.primaryDark; }}
-                        onMouseLeave={e => { if(filteredRequests.length > 0) e.currentTarget.style.background = S.primary; }}
+                        style={{
+                          marginLeft: 8,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                          padding: "8px 14px",
+                          borderRadius: 10,
+                          border: "none",
+                          background:
+                            filteredRequests.length === 0
+                              ? S.surfaceContainer
+                              : S.primary,
+                          color: "#fff",
+                          fontWeight: 600,
+                          fontSize: 13,
+                          cursor:
+                            filteredRequests.length === 0
+                              ? "not-allowed"
+                              : "pointer",
+                          transition: "all 0.2s",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (filteredRequests.length > 0)
+                            e.currentTarget.style.background = S.primaryDark;
+                        }}
+                        onMouseLeave={(e) => {
+                          if (filteredRequests.length > 0)
+                            e.currentTarget.style.background = S.primary;
+                        }}
                       >
-                        <Download size={16} /> <span className="hide-mobile">Export</span>
+                        <Download size={16} />{" "}
+                        <span className="hide-mobile">Export</span>
                       </button>
                     </div>
                   </div>
@@ -371,74 +1029,225 @@ export default function AuthorityPanel() {
                   {/* Requests table */}
                   <div style={{ flex: 1, overflowY: "auto" }}>
                     {filteredRequests.length === 0 ? (
-                      <div style={{ padding: 48, textAlign: "center", color: S.onSurfaceVar }}>
-                        <Inbox size={28} color={S.outline} style={{ marginBottom: 12 }} />
-                        <p style={{ margin: 0, fontSize: 14 }}>No requests found for the selected month.</p>
+                      <div
+                        style={{
+                          padding: 48,
+                          textAlign: "center",
+                          color: S.onSurfaceVar,
+                        }}
+                      >
+                        <Inbox
+                          size={28}
+                          color={S.outline}
+                          style={{ marginBottom: 12 }}
+                        />
+                        <p style={{ margin: 0, fontSize: 14 }}>
+                          No requests found for the selected month.
+                        </p>
                       </div>
                     ) : (
                       <div style={{ overflowX: "auto" }}>
-                        <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
-                        <thead>
-                          <tr style={{ background: S.surfaceContainerLow }}>
-                            {["Date", "Hours", "Reason", "Status", "Actions"].map(col => (
-                              <th key={col} style={{ padding: "11px 20px", textAlign: "left", fontSize: 11, fontWeight: 700, color: S.onSurfaceVar, textTransform: "uppercase", letterSpacing: "0.06em", borderBottom: `1px solid ${S.outlineVar}` }}>{col}</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filteredRequests.map((req, idx) => {
-                            const st = getStatus(req.status);
-                            const Icon = st.icon;
-                            // Show actions based on current user's role and the request's current status
-                            const isPending = canActOn(req.status);
-                            return (
-                              <tr key={req.id || idx}
-                                style={{ borderBottom: `1px solid ${S.outlineVar}`, transition: "background 0.15s" }}
-                                onMouseEnter={e => e.currentTarget.style.background = S.surfaceContainerLow}
-                                onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                              >
-                                <td style={{ padding: "14px 20px", fontSize: 13, color: S.onSurface, whiteSpace: "nowrap" }}>
-                                  {new Date(req.requestDate || req.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                                </td>
-                                <td style={{ padding: "14px 20px", fontSize: 14, whiteSpace: "nowrap" }}>
-                                  <span style={{ fontWeight: 700, color: S.primary }}>{req.hours}h</span>
-                                </td>
-                                <td style={{ padding: "14px 20px", fontSize: 13, color: S.onSurfaceVar, maxWidth: 200 }}>
-                                  <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{req.reason}</span>
-                                </td>
-                                <td style={{ padding: "14px 20px" }}>
-                                  <span style={{ display: "inline-flex", alignItems: "center", gap: 5, background: st.bg, color: st.color, borderRadius: 99, padding: "4px 10px", fontSize: 11, fontWeight: 600 }}>
-                                    <Icon size={12} /> {st.label}
-                                  </span>
-                                </td>
-                                <td style={{ padding: "14px 20px" }}>
-                                  {isPending ? (
-                                    <div style={{ display: "flex", gap: 8 }}>
-                                      <button onClick={() => handleApprove(req.id)}
-                                        style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "6px 14px", borderRadius: 8, border: "none", background: "#dcfce7", color: "#15803d", fontWeight: 600, fontSize: 12, cursor: "pointer", fontFamily: S.font, transition: "all 0.15s" }}
-                                        onMouseEnter={e => e.currentTarget.style.background = "#bbf7d0"}
-                                        onMouseLeave={e => e.currentTarget.style.background = "#dcfce7"}
+                        <table
+                          style={{
+                            width: "100%",
+                            borderCollapse: "collapse",
+                            minWidth: 600,
+                          }}
+                        >
+                          <thead>
+                            <tr style={{ background: S.surfaceContainerLow }}>
+                              {[
+                                "Date",
+                                "Hours",
+                                "Reason",
+                                "Status",
+                                "Actions",
+                              ].map((col) => (
+                                <th
+                                  key={col}
+                                  style={{
+                                    padding: "11px 20px",
+                                    textAlign: "left",
+                                    fontSize: 11,
+                                    fontWeight: 700,
+                                    color: S.onSurfaceVar,
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.06em",
+                                    borderBottom: `1px solid ${S.outlineVar}`,
+                                  }}
+                                >
+                                  {col}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {filteredRequests.map((req, idx) => {
+                              const st = getStatus(req.status);
+                              const Icon = st.icon;
+                              // Show actions based on current user's role and the request's current status
+                              const isPending = canActOn(req.status);
+                              return (
+                                <tr
+                                  key={req.id || idx}
+                                  style={{
+                                    borderBottom: `1px solid ${S.outlineVar}`,
+                                    transition: "background 0.15s",
+                                  }}
+                                  onMouseEnter={(e) =>
+                                    (e.currentTarget.style.background =
+                                      S.surfaceContainerLow)
+                                  }
+                                  onMouseLeave={(e) =>
+                                    (e.currentTarget.style.background =
+                                      "transparent")
+                                  }
+                                >
+                                  <td
+                                    style={{
+                                      padding: "14px 20px",
+                                      fontSize: 13,
+                                      color: S.onSurface,
+                                      whiteSpace: "nowrap",
+                                    }}
+                                  >
+                                    {new Date(
+                                      req.requestDate || req.date,
+                                    ).toLocaleDateString("en-IN", {
+                                      day: "numeric",
+                                      month: "short",
+                                      year: "numeric",
+                                    })}
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: "14px 20px",
+                                      fontSize: 14,
+                                      whiteSpace: "nowrap",
+                                    }}
+                                  >
+                                    <span
+                                      style={{
+                                        fontWeight: 700,
+                                        color: S.primary,
+                                      }}
+                                    >
+                                      {req.hours}h
+                                    </span>
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: "14px 20px",
+                                      fontSize: 13,
+                                      color: S.onSurfaceVar,
+                                      maxWidth: 200,
+                                    }}
+                                  >
+                                    <span
+                                      style={{
+                                        display: "block",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap",
+                                      }}
+                                    >
+                                      {req.reason}
+                                    </span>
+                                  </td>
+                                  <td style={{ padding: "14px 20px" }}>
+                                    <span
+                                      style={{
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        gap: 5,
+                                        background: st.bg,
+                                        color: st.color,
+                                        borderRadius: 99,
+                                        padding: "4px 10px",
+                                        fontSize: 11,
+                                        fontWeight: 600,
+                                      }}
+                                    >
+                                      <Icon size={12} /> {st.label}
+                                    </span>
+                                  </td>
+                                  <td style={{ padding: "14px 20px" }}>
+                                    {isPending ? (
+                                      <div style={{ display: "flex", gap: 8 }}>
+                                        <button
+                                          onClick={() => handleApprove(req.id)}
+                                          style={{
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            gap: 5,
+                                            padding: "6px 14px",
+                                            borderRadius: 8,
+                                            border: "none",
+                                            background: "#dcfce7",
+                                            color: "#15803d",
+                                            fontWeight: 600,
+                                            fontSize: 12,
+                                            cursor: "pointer",
+                                            fontFamily: S.font,
+                                            transition: "all 0.15s",
+                                          }}
+                                          onMouseEnter={(e) =>
+                                            (e.currentTarget.style.background =
+                                              "#bbf7d0")
+                                          }
+                                          onMouseLeave={(e) =>
+                                            (e.currentTarget.style.background =
+                                              "#dcfce7")
+                                          }
+                                        >
+                                          <CheckCircle size={13} /> Approve
+                                        </button>
+                                        <button
+                                          onClick={() => handleReject(req.id)}
+                                          style={{
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            gap: 5,
+                                            padding: "6px 14px",
+                                            borderRadius: 8,
+                                            border: "none",
+                                            background: S.errorContainer,
+                                            color: S.error,
+                                            fontWeight: 600,
+                                            fontSize: 12,
+                                            cursor: "pointer",
+                                            fontFamily: S.font,
+                                            transition: "all 0.15s",
+                                          }}
+                                          onMouseEnter={(e) =>
+                                            (e.currentTarget.style.background =
+                                              "#ffc9c6")
+                                          }
+                                          onMouseLeave={(e) =>
+                                            (e.currentTarget.style.background =
+                                              S.errorContainer)
+                                          }
+                                        >
+                                          <XCircle size={13} /> Reject
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <span
+                                        style={{
+                                          fontSize: 12,
+                                          color: S.onSurfaceVar,
+                                        }}
                                       >
-                                        <CheckCircle size={13} /> Approve
-                                      </button>
-                                      <button onClick={() => handleReject(req.id)}
-                                        style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "6px 14px", borderRadius: 8, border: "none", background: S.errorContainer, color: S.error, fontWeight: 600, fontSize: 12, cursor: "pointer", fontFamily: S.font, transition: "all 0.15s" }}
-                                        onMouseEnter={e => e.currentTarget.style.background = "#ffc9c6"}
-                                        onMouseLeave={e => e.currentTarget.style.background = S.errorContainer}
-                                      >
-                                        <XCircle size={13} /> Reject
-                                      </button>
-                                    </div>
-                                  ) : (
-                                    <span style={{ fontSize: 12, color: S.onSurfaceVar }}>—</span>
-                                  )}
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
+                                        —
+                                      </span>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
                     )}
                   </div>
                 </motion.div>

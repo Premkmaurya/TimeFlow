@@ -152,6 +152,7 @@ export default function OvertimeFormModal({ open, onClose, onSubmit, isSubmittin
                     <input
                       id="ot-date"
                       type="date"
+                      max={new Date().toISOString().split("T")[0]}
                       {...register("requestDate", { required: "Date is required" })}
                       style={inputBase(!!errors.requestDate)}
                     />

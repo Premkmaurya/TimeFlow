@@ -6,6 +6,15 @@ const Notification = require("../models/notification.model");
 const createOvertimeRequest = async (req, res) => {
   const { requestDate, hours, reason } = req.body;
   try {
+    // Validate date: Cannot be in the future
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    const reqDate = new Date(requestDate);
+
+    if (reqDate > today) {
+      return res.status(400).json({ message: "Overtime cannot be added for future dates." });
+    }
+
     // Create overtime request
     const overtimeRequest = await OvertimeRequest.create({
       user: req.user.id,

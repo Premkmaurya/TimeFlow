@@ -26,12 +26,14 @@ export const login = createAsyncThunk(
 );
 
 export const getMe = createAsyncThunk("auth/getMe", async (_, thunkAPI) => {
-    try {
-        const response = await axiosInstance.get(`${API_URL}/get-user`);
-        return response.data;
-    } catch (error) {
-        return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
-    }
+  try {
+    const response = await axiosInstance.get(`${API_URL}/get-user`);
+    return response.data;
+  } catch (error) {
+    return thunkAPI.rejectWithValue(
+      error.response?.data?.message || error.message,
+    );
+  }
 });
 
 export const logout = createAsyncThunk("auth/logout", async (_, thunkAPI) => {
