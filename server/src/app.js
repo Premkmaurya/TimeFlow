@@ -9,6 +9,7 @@ const overtimeRoutes = require("./routes/overtimeRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 
 const app = express();
+app.set("trust proxy", 1);
 
 app.use(
   cors({

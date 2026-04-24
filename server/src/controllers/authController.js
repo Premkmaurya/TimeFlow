@@ -143,12 +143,7 @@ const refresh = async (req, res) => {
       { expiresIn: "15m" },
     );
 
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 15 * 60 * 1000,
-    });
+    setCookies(res, accessToken, refreshToken);
 
     res.status(200).json({ message: "Token refreshed" });
   } catch (err) {
@@ -162,9 +157,11 @@ const googleCallback = (req, res) => {
     setCookies(res, accessToken, refreshToken);
     
     // Redirect to frontend dashboard
-    res.redirect("https://time-flow-xi.vercel.app/dashboard");
+    const frontendUrl = "https://time-flow-5sbe.vercel.app";
+    res.redirect(`${frontendUrl}/dashboard`);
   } catch (err) {
-    res.redirect("https://time-flow-xi.vercel.app/login?error=auth_failed");
+    const frontendUrl = "https://time-flow-5sbe.vercel.app";
+    res.redirect(`${frontendUrl}/login?error=auth_failed`);
   }
 };
 
