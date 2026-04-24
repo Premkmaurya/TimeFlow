@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 
+const passport = require("passport");
+
 const authRoutes = require("./routes/authRoutes");
 const overtimeRoutes = require("./routes/overtimeRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
@@ -21,6 +23,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/auth", authRoutes);
 app.use("/api/overtime", overtimeRoutes);
 app.use("/api/notifications", notificationRoutes);
+
+require("./config/passport");
+app.use(passport.initialize());
+
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
