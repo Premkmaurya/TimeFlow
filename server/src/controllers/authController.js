@@ -19,19 +19,25 @@ const generateTokens = (user) => {
 };
 
 const setCookies = (res, accessToken, refreshToken) => {
+  // Use environment variable or check if we are NOT on localhost
   const isProduction = process.env.NODE_ENV === "production";
   
-  res.cookie("accessToken", accessToken, {
+  const cookieOptions = {
     httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
+    secure: true, // Always true for HTTPS (Vercel)
+    sameSite: "none", // Required for cross-site cookies on Vercel
     maxAge: 15 * 60 * 1000,
-  });
+  };
 
+  // For local development, we might need lax if not using HTTPS
+  if (!isProduction) {
+    cookieOptions.secure = false;
+    cookieOptions.sameSite = "lax";
+  }
+
+  res.cookie("accessToken", accessToken, cookieOptions);
   res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
+    ...cookieOptions,
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 };
