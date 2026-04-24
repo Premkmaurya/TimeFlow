@@ -5,12 +5,6 @@ const Notification = require("../models/notification.model");
 // Submit an overtime request
 const createOvertimeRequest = async (req, res) => {
   const { requestDate, hours, reason } = req.body;
-  console.log("Creating overtime request with data:", {
-    requestDate,
-    hours,
-    reason,
-    user: req.user.id,
-  });
   try {
     // Create overtime request
     const overtimeRequest = await OvertimeRequest.create({
@@ -165,8 +159,15 @@ const getAllEmployees = async (req, res) => {
     const employeeData = await Promise.all(
       employees.map(async (emp) => {
         const requests = await OvertimeRequest.find({ user: emp._id });
-        const totalOvertimeHours = requests.reduce((sum, r) => sum + r.hours, 0);
-        const hasNewRequest = requests.some(r => r.status === "pending");
+        const totalOvertimeHours = requests
+          .filter(r => r.status === "approved")
+          .reduce((sum, r) => sum + r.hours, 0);
+        const role = req.user.role;
+        const hasNewRequest = requests.some(r => {
+          if (role === "manager") return r.status === "pending" || r.status === "hr_approved";
+          if (role === "hr") return r.status === "pending" || r.status === "manager_approved";
+          return r.status === "pending" || r.status === "hr_approved" || r.status === "manager_approved";
+        });
         const status = requests.length > 0 ? requests[requests.length - 1].status : "none";
         return {
           id: emp._id,

@@ -1,10 +1,10 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import axiosInstance from "../../api/axios";
 
-const API_URL = "http://localhost:5000/api/auth";
+const API_URL = "/auth";
 
 // Configure axios to send cookies
-axios.defaults.withCredentials = true;
+axiosInstance.defaults.withCredentials = true;
 
 const user = JSON.parse(localStorage.getItem("user"));
 
@@ -12,9 +12,7 @@ export const login = createAsyncThunk(
   "auth/login",
   async (userData, thunkAPI) => {
     try {
-      const response = await axios.post(`${API_URL}/login`, userData, {
-        withCredentials: true,
-      });
+      const response = await axiosInstance.post(`${API_URL}/login`, userData);
       if (response.data) {
         localStorage.setItem("user", JSON.stringify(response.data.user));
       }
@@ -29,9 +27,7 @@ export const login = createAsyncThunk(
 
 export const getMe = createAsyncThunk("auth/getMe", async (_, thunkAPI) => {
     try {
-        const response = await axios.get(`${API_URL}/get-user`, {
-            withCredentials: true,
-        });
+        const response = await axiosInstance.get(`${API_URL}/get-user`);
         return response.data;
     } catch (error) {
         return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
@@ -41,7 +37,7 @@ export const getMe = createAsyncThunk("auth/getMe", async (_, thunkAPI) => {
 export const logout = createAsyncThunk("auth/logout", async (_, thunkAPI) => {
   try {
     // Tell the server to blacklist the token in Redis and clear the cookie
-    await axios.post(`${API_URL}/logout`, {}, { withCredentials: true });
+    await axiosInstance.post(`${API_URL}/logout`);
   } catch (error) {
     // Even if the server call fails, we still clear local state
     console.warn("[Auth] Logout API error:", error.message);

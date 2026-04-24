@@ -11,9 +11,7 @@ import { logout, reset as authReset } from "../features/auth/authSlice";
 import {
   Users, LogOut, CheckCircle, XCircle, Clock3,
   ChevronRight, Inbox, Search, BarChart2, Clock,
-  TrendingUp, UserCheck,
-  Menu,
-  X,
+  TrendingUp, UserCheck, Menu, X, Calendar, Download, FileText
 } from "lucide-react";
 
 /* ─── Design tokens ─────────────────────── */
@@ -57,6 +55,7 @@ export default function AuthorityPanel() {
   const [selectedId, setSelectedId] = useState(null);
   const [search, setSearch] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
 
   /* ── original logic ── */
   useEffect(() => {
@@ -78,6 +77,42 @@ export default function AuthorityPanel() {
   );
 
   const selected = employeeList.find((e) => e.id === selectedId);
+
+  /* ── filtering requests by month ── */
+  const filteredRequests = selected?.requests?.filter(r => {
+    const rDate = new Date(r.requestDate || r.date);
+    const rMonthStr = rDate.toISOString().slice(0, 7); // YYYY-MM
+    return rMonthStr === selectedMonth;
+  }) || [];
+
+  const monthlyApprovedHours = filteredRequests
+    .filter(r => r.status === "approved")
+    .reduce((sum, r) => sum + Number(r.hours), 0);
+
+  const downloadCSV = () => {
+    if (!selected || filteredRequests.length === 0) return;
+    
+    const headers = ["Date", "Hours", "Reason", "Status", "Manager/HR Comment"];
+    const rows = filteredRequests.map(r => [
+      new Date(r.requestDate || r.date).toLocaleDateString("en-IN"),
+      r.hours,
+      `"${r.reason.replace(/"/g, '""')}"`,
+      r.status,
+      `"${(r.rejectionReason || "").replace(/"/g, '""')}"`
+    ]);
+
+    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Overtime_${selected.name.replace(/\s+/g, '_')}_${selectedMonth}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   /* ── role-based action visibility helper ── */
   const canActOn = (reqStatus) => {
@@ -153,7 +188,7 @@ export default function AuthorityPanel() {
               ) : filtered.length === 0 ? (
                 <div style={{ padding: 24, textAlign: "center", color: S.onSurfaceVar, fontSize: 13 }}>No employees found</div>
               ) : filtered.map((emp) => {
-                const pending = (emp.requests || []).filter(r => r.status === "pending").length;
+                const pending = (emp.requests || []).filter(r => canActOn(r.status)).length;
                 const active = selectedId === emp.id;
                 return (
                   <button key={emp.id} onClick={() => setSelectedId(emp.id)}
@@ -295,26 +330,50 @@ export default function AuthorityPanel() {
                       <div style={{ fontSize: 17, fontWeight: 700, color: S.onSurface, letterSpacing: "-0.01em" }}>{selected.name}</div>
                       <div style={{ fontSize: 13, color: S.onSurfaceVar }}>{selected.email}</div>
                     </div>
-                    {/* Mini stats */}
-                    <div className="auth-emp-stats" style={{ display: "flex", gap: 20 }}>
+                    {/* Mini stats & Controls */}
+                    <div className="auth-emp-stats" style={{ display: "flex", gap: 16, alignItems: "center" }}>
+                      {/* Month selector */}
+                      <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 8, background: S.surfaceContainerLow, padding: "4px 10px", borderRadius: 10, border: `1px solid ${S.outlineVar}` }}>
+                        <Calendar size={14} color={S.primary} />
+                        <input
+                          type="month"
+                          value={selectedMonth}
+                          onChange={(e) => setSelectedMonth(e.target.value)}
+                          style={{ border: "none", background: "transparent", fontSize: 13, fontWeight: 600, color: S.onSurface, fontFamily: S.font, outline: "none", cursor: "pointer" }}
+                        />
+                      </div>
+
+                      <div style={{ width: 1, height: 24, background: S.outlineVar }} />
+
                       {[
-                        { label: "Total Hours", value: `${selected.totalOvertimeHours ?? 0}h`, color: S.primary },
-                        { label: "Requests", value: (selected.requests || []).length, color: S.onSurface },
+                        { label: "Total Hours", value: `${monthlyApprovedHours}h`, color: S.primary, sub: "Selected Month" },
+                        { label: "Requests", value: filteredRequests.length, color: S.onSurface, sub: "Filtered" },
                       ].map((st, i) => (
                         <div key={i} style={{ textAlign: "center" }}>
-                          <div style={{ fontSize: 20, fontWeight: 800, color: st.color, letterSpacing: "-0.02em" }}>{st.value}</div>
-                          <div style={{ fontSize: 11, color: S.onSurfaceVar, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>{st.label}</div>
+                          <div style={{ fontSize: 18, fontWeight: 800, color: st.color, letterSpacing: "-0.02em", lineHeight: 1 }}>{st.value}</div>
+                          <div style={{ fontSize: 10, color: S.onSurfaceVar, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{st.label}</div>
                         </div>
                       ))}
+
+                      <button
+                        onClick={downloadCSV}
+                        disabled={filteredRequests.length === 0}
+                        title="Download CSV"
+                        style={{ marginLeft: 8, display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10, border: "none", background: filteredRequests.length === 0 ? S.surfaceContainer : S.primary, color: "#fff", fontWeight: 600, fontSize: 13, cursor: filteredRequests.length === 0 ? "not-allowed" : "pointer", transition: "all 0.2s" }}
+                        onMouseEnter={e => { if(filteredRequests.length > 0) e.currentTarget.style.background = S.primaryDark; }}
+                        onMouseLeave={e => { if(filteredRequests.length > 0) e.currentTarget.style.background = S.primary; }}
+                      >
+                        <Download size={16} /> <span className="hide-mobile">Export</span>
+                      </button>
                     </div>
                   </div>
 
                   {/* Requests table */}
                   <div style={{ flex: 1, overflowY: "auto" }}>
-                    {(selected.requests || []).length === 0 ? (
+                    {filteredRequests.length === 0 ? (
                       <div style={{ padding: 48, textAlign: "center", color: S.onSurfaceVar }}>
                         <Inbox size={28} color={S.outline} style={{ marginBottom: 12 }} />
-                        <p style={{ margin: 0, fontSize: 14 }}>No requests from this employee.</p>
+                        <p style={{ margin: 0, fontSize: 14 }}>No requests found for the selected month.</p>
                       </div>
                     ) : (
                       <div style={{ overflowX: "auto" }}>
@@ -327,7 +386,7 @@ export default function AuthorityPanel() {
                           </tr>
                         </thead>
                         <tbody>
-                          {(selected.requests || []).map((req, idx) => {
+                          {filteredRequests.map((req, idx) => {
                             const st = getStatus(req.status);
                             const Icon = st.icon;
                             // Show actions based on current user's role and the request's current status
@@ -417,10 +476,12 @@ export default function AuthorityPanel() {
           }
           .auth-emp-stats {
             width: 100% !important;
-            justify-content: space-between !important;
+            justify-content: flex-start !important;
             padding-top: 16px !important;
             border-top: 1px solid ${S.outlineVar} !important;
+            flex-wrap: wrap !important;
           }
+          .hide-mobile { display: none !important; }
         }
       `}</style>
     </div>

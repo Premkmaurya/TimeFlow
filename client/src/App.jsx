@@ -17,12 +17,14 @@ function App() {
   const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    // If there's no user in Redux but there's a token in the cookie,
-    // fetch the user data from the backend
-    if (!user) {
+    // Prevent getMe from running on public pages to avoid unnecessary 401s for guests
+    const publicPaths = ['/', '/login', '/register', '/about', '/contact'];
+    const isPublicPath = publicPaths.includes(window.location.pathname);
+
+    if (!user && !isPublicPath) {
       dispatch(getMe());
     }
-  }, []);
+  }, [dispatch, user]);
 
   return (
     <Router>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchRequest, reset } from "../features/overtime/overtimeSlice";
-import axios from "axios";
+import axiosInstance from "../api/axios";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Clock, Plus, CheckCircle, XCircle, Clock3,
@@ -106,9 +106,7 @@ export default function Dashboard() {
   const onSubmitOvertime = async (data) => {
     setIsSubmitting(true);
     try {
-      await axios.post("http://localhost:5000/api/overtime", data, {
-        withCredentials: true,
-      });
+      await axiosInstance.post("/overtime", data);
       setShowModal(false);
       dispatch(fetchRequest()); // refresh the list
     } catch (err) {

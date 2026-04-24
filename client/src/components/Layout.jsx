@@ -4,14 +4,7 @@ import { getMe } from '../features/auth/authSlice';
 import { Outlet } from 'react-router-dom';
 
 const Layout = () => {
-    const dispatch = useDispatch();
-    const user = useSelector((state) => state.user);
-
-    useEffect(() => {
-        if (!user) {
-            dispatch(getMe());
-        }
-    }, [dispatch]);
+    const { user } = useSelector((state) => state.auth);
 
     return (
         <div style={{ minHeight: '100vh', background: '#f2f3fd' }}>

@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
+import { useSelector } from 'react-redux';
 import { Menu, X } from 'lucide-react';
 
 const navLinks = [
@@ -11,6 +12,10 @@ const navLinks = [
 const PublicNavbar = () => {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { user } = useSelector((state) => state.auth);
+
+  const dashPath = user?.role === "employee" ? "/dashboard" : "/authority";
+  const dashLabel = user?.role === "employee" ? "Dashboard" : "Panel";
 
   return (
     <>
@@ -58,14 +63,23 @@ const PublicNavbar = () => {
 
           {/* Desktop auth buttons */}
           <div className="nav-desktop-auth" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Link to="/login" style={{ fontSize: 14, fontWeight: 500, color: '#424754', textDecoration: 'none', padding: '6px 16px', borderRadius: 8, transition: 'all 0.15s' }}
-              onMouseEnter={e => { e.currentTarget.style.color = '#0058be'; e.currentTarget.style.background = '#ecedf7'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = '#424754'; e.currentTarget.style.background = 'transparent'; }}
-            >Log in</Link>
-            <Link to="/register" style={{ fontSize: 14, fontWeight: 600, color: '#ffffff', background: '#0058be', textDecoration: 'none', padding: '8px 18px', borderRadius: 10, boxShadow: '0 2px 10px rgba(0,88,190,0.24)', transition: 'all 0.2s' }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#004395'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#0058be'; }}
-            >Get Started</Link>
+            {!user ? (
+              <>
+                <Link to="/login" style={{ fontSize: 14, fontWeight: 500, color: '#424754', textDecoration: 'none', padding: '6px 16px', borderRadius: 8, transition: 'all 0.15s' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = '#0058be'; e.currentTarget.style.background = '#ecedf7'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = '#424754'; e.currentTarget.style.background = 'transparent'; }}
+                >Log in</Link>
+                <Link to="/register" style={{ fontSize: 14, fontWeight: 600, color: '#ffffff', background: '#0058be', textDecoration: 'none', padding: '8px 18px', borderRadius: 10, boxShadow: '0 2px 10px rgba(0,88,190,0.24)', transition: 'all 0.2s' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#004395'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = '#0058be'; }}
+                >Get Started</Link>
+              </>
+            ) : (
+              <Link to={dashPath} style={{ fontSize: 14, fontWeight: 600, color: '#ffffff', background: '#0058be', textDecoration: 'none', padding: '8px 20px', borderRadius: 10, boxShadow: '0 2px 10px rgba(0,88,190,0.24)', transition: 'all 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#004395'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#0058be'; }}
+              >Go to {dashLabel}</Link>
+            )}
           </div>
 
           {/* Mobile hamburger */}
@@ -105,12 +119,20 @@ const PublicNavbar = () => {
               );
             })}
             <div style={{ borderTop: '1px solid #e1e2ec', marginTop: 8, paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <Link to="/login" onClick={() => setMenuOpen(false)}
-                style={{ padding: '12px 16px', borderRadius: 10, fontSize: 15, fontWeight: 500, color: '#424754', textDecoration: 'none', background: '#f2f3fd' }}
-              >Log in</Link>
-              <Link to="/register" onClick={() => setMenuOpen(false)}
-                style={{ padding: '12px 16px', borderRadius: 10, fontSize: 15, fontWeight: 600, color: '#ffffff', background: '#0058be', textDecoration: 'none', textAlign: 'center' }}
-              >Get Started</Link>
+              {!user ? (
+                <>
+                  <Link to="/login" onClick={() => setMenuOpen(false)}
+                    style={{ padding: '12px 16px', borderRadius: 10, fontSize: 15, fontWeight: 500, color: '#424754', textDecoration: 'none', background: '#f2f3fd' }}
+                  >Log in</Link>
+                  <Link to="/register" onClick={() => setMenuOpen(false)}
+                    style={{ padding: '12px 16px', borderRadius: 10, fontSize: 15, fontWeight: 600, color: '#ffffff', background: '#0058be', textDecoration: 'none', textAlign: 'center' }}
+                  >Get Started</Link>
+                </>
+              ) : (
+                <Link to={dashPath} onClick={() => setMenuOpen(false)}
+                  style={{ padding: '12px 16px', borderRadius: 10, fontSize: 15, fontWeight: 600, color: '#ffffff', background: '#0058be', textDecoration: 'none', textAlign: 'center' }}
+                >Go to {dashLabel}</Link>
+              )}
             </div>
           </div>
         )}

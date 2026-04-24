@@ -1,12 +1,12 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axiosInstance from '../../api/axios';
 
-const API_URL = 'http://localhost:5000/api/overtime';
+const API_URL = '/overtime';
 
 // Fetch all employees with grouped requests
 export const fetchEmployees = createAsyncThunk('overtime/fetchEmployees', async () => {
     try {
-        const res = await axios.get(`${API_URL}/employees`, { withCredentials: true });
+        const res = await axiosInstance.get(`${API_URL}/employees`);
         return res.data;
     } catch (error) {
         console.error(error);
@@ -15,7 +15,7 @@ export const fetchEmployees = createAsyncThunk('overtime/fetchEmployees', async 
 
 export const fetchRequest = createAsyncThunk('overtime/fetchRequest', async () => {
     try {
-        const res = await axios.get(`${API_URL}/my-requests`, { withCredentials: true });
+        const res = await axiosInstance.get(`${API_URL}/my-requests`);
         return res.data;
     } catch (error) {
         console.error(error);
@@ -28,7 +28,7 @@ export const fetchRequest = createAsyncThunk('overtime/fetchRequest', async () =
 // Approve request
 export const approveRequest = createAsyncThunk('overtime/approveRequest', async (reqId, thunkAPI) => {
     try {
-        await axios.put(`${API_URL}/${reqId}/process`, { action: 'approve' }, { withCredentials: true });
+        await axiosInstance.put(`${API_URL}/${reqId}/process`, { action: 'approve' });
         return reqId;
     } catch (error) {
         return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
@@ -38,7 +38,7 @@ export const approveRequest = createAsyncThunk('overtime/approveRequest', async 
 // Reject request
 export const rejectRequest = createAsyncThunk('overtime/rejectRequest', async (reqId, thunkAPI) => {
     try {
-        await axios.put(`${API_URL}/${reqId}/process`, { action: 'reject' }, { withCredentials: true });
+        await axiosInstance.put(`${API_URL}/${reqId}/process`, { action: 'reject' });
         return reqId;
     } catch (error) {
         return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
@@ -95,29 +95,44 @@ const overtimeSlice = createSlice({
             })
             .addCase(approveRequest.fulfilled, (state, action) => {
                 const reqId = action.payload;
+                // Update local requests
                 state.employees = state.employees.map(r =>
                     r.id === reqId ? { ...r, status: 'approved' } : r
                 );
-                // Also update the authority panel's nested requests
-                state.employeeList = state.employeeList.map(emp => ({
-                    ...emp,
-                    requests: (emp.requests || []).map(r =>
+                // Also update the authority panel's nested requests and total hours
+                state.employeeList = state.employeeList.map(emp => {
+                    const hasReq = (emp.requests || []).some(r => String(r.id) === String(reqId));
+                    if (!hasReq) return emp;
+
+                    const updatedRequests = emp.requests.map(r =>
                         String(r.id) === String(reqId) ? { ...r, status: 'approved' } : r
-                    ),
-                }));
+                    );
+                    const newTotal = updatedRequests
+                        .filter(r => r.status === 'approved')
+                        .reduce((sum, r) => sum + r.hours, 0);
+
+                    return { ...emp, requests: updatedRequests, totalOvertimeHours: newTotal };
+                });
             })
             .addCase(rejectRequest.fulfilled, (state, action) => {
                 const reqId = action.payload;
                 state.employees = state.employees.map(r =>
                     r.id === reqId ? { ...r, status: 'rejected' } : r
                 );
-                // Also update the authority panel's nested requests
-                state.employeeList = state.employeeList.map(emp => ({
-                    ...emp,
-                    requests: (emp.requests || []).map(r =>
+                // Also update the authority panel's nested requests and total hours
+                state.employeeList = state.employeeList.map(emp => {
+                    const hasReq = (emp.requests || []).some(r => String(r.id) === String(reqId));
+                    if (!hasReq) return emp;
+
+                    const updatedRequests = emp.requests.map(r =>
                         String(r.id) === String(reqId) ? { ...r, status: 'rejected' } : r
-                    ),
-                }));
+                    );
+                    const newTotal = updatedRequests
+                        .filter(r => r.status === 'approved')
+                        .reduce((sum, r) => sum + r.hours, 0);
+
+                    return { ...emp, requests: updatedRequests, totalOvertimeHours: newTotal };
+                });
             });
     },
 });
