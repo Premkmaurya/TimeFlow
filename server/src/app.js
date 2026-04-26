@@ -13,7 +13,7 @@ app.set("trust proxy", 1);
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://localhost:5000",
+  "https://time-flow-theta.vercel.app",
   ...(process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(",")
     : []),
