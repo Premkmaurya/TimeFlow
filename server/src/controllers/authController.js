@@ -163,10 +163,10 @@ const googleCallback = (req, res) => {
     setCookies(res, accessToken, refreshToken);
     
     // Redirect to frontend dashboard
-    const frontendUrl = "http://localhost:5173";
+    const frontendUrl = "https://time-flow-theta.vercel.app";
     res.redirect(`${frontendUrl}/dashboard`);
   } catch (err) {
-    const frontendUrl = "http://localhost:5173";
+    const frontendUrl = "https://time-flow-theta.vercel.app";
     res.redirect(`${frontendUrl}/login?error=auth_failed`);
   }
 };
