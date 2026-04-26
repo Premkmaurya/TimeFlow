@@ -60,13 +60,9 @@ export default function Register() {
     setLoading(true);
     setError("");
     try {
-      await axios.post(
-        "https://time-flow-5sbe.vercel.app/api/auth/register",
-        formData,
-        {
-          withCredentials: true,
-        },
-      );
+      await axios.post("http://localhost:5000/api/auth/register", formData, {
+        withCredentials: true,
+      });
       navigate("/login");
     } catch (err) {
       setError(err.response?.data?.message || err.message);
@@ -576,8 +572,7 @@ export default function Register() {
             <button
               type="button"
               onClick={() =>
-                (window.location.href =
-                  "https://time-flow-5sbe.vercel.app/api/auth/google")
+                (window.location.href = "http://localhost:5000/api/auth/google")
               }
               style={{
                 width: "100%",

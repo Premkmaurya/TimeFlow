@@ -520,8 +520,7 @@ export default function Login() {
             <button
               type="button"
               onClick={() =>
-                (window.location.href =
-                  "https://time-flow-5sbe.vercel.app/api/auth/google")
+                (window.location.href = "http://localhost:5000/api/auth/google")
               }
               style={{
                 width: "100%",

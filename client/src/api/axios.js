@@ -1,7 +1,9 @@
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+
 const axiosInstance = axios.create({
-  baseURL: "https://time-flow-5sbe.vercel.app/api",
+  baseURL: API_URL,
   withCredentials: true,
 });
 
@@ -26,7 +28,7 @@ axiosInstance.interceptors.response.use(
       try {
         // Attempt to refresh token
         await axios.post(
-          "https://time-flow-5sbe.vercel.app/api/auth/refresh",
+          `${API_URL}/auth/refresh`,
           {},
           { withCredentials: true },
         );

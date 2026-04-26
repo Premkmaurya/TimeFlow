@@ -163,10 +163,10 @@ const googleCallback = (req, res) => {
     setCookies(res, accessToken, refreshToken);
     
     // Redirect to frontend dashboard
-    const frontendUrl = "https://time-flow-5sbe.vercel.app";
+    const frontendUrl = "http://localhost:5173";
     res.redirect(`${frontendUrl}/dashboard`);
   } catch (err) {
-    const frontendUrl = "https://time-flow-5sbe.vercel.app";
+    const frontendUrl = "http://localhost:5173";
     res.redirect(`${frontendUrl}/login?error=auth_failed`);
   }
 };
