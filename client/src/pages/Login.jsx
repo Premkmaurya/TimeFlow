@@ -520,7 +520,8 @@ export default function Login() {
             <button
               type="button"
               onClick={() =>
-                (window.location.href = "http://localhost:5000/api/auth/google")
+                (window.location.href =
+                  "https://timeflow-8vhk.onrender.com/api/auth/google")
               }
               style={{
                 width: "100%",

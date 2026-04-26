@@ -60,9 +60,13 @@ export default function Register() {
     setLoading(true);
     setError("");
     try {
-      await axios.post("http://localhost:5000/api/auth/register", formData, {
-        withCredentials: true,
-      });
+      await axios.post(
+        "https://timeflow-8vhk.onrender.com/api/auth/register",
+        formData,
+        {
+          withCredentials: true,
+        },
+      );
       navigate("/login");
     } catch (err) {
       setError(err.response?.data?.message || err.message);
@@ -572,7 +576,8 @@ export default function Register() {
             <button
               type="button"
               onClick={() =>
-                (window.location.href = "http://localhost:5000/api/auth/google")
+                (window.location.href =
+                  "https://timeflow-8vhk.onrender.com/api/auth/google")
               }
               style={{
                 width: "100%",

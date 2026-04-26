@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/notifications";
+const API_URL = "https://timeflow-8vhk.onrender.com/api/notifications";
 
 export const getNotifications = createAsyncThunk(
   "notifications/getAll",
