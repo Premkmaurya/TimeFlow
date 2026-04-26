@@ -23,7 +23,7 @@ const setCookies = (res, accessToken, refreshToken) => {
   const cookieOptions = {
     httpOnly: true,
     secure: true, // Always true for HTTPS (Vercel)
-    sameSite: "none", // Required for cross-site cookies on Vercel
+    sameSite: "None", // Required for cross-site cookies on Vercel
     maxAge: 15 * 60 * 1000,
   };
 
