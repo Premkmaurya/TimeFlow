@@ -11,7 +11,7 @@ const generateTokens = (user) => {
 
   const refreshToken = jwt.sign(
     { id: user._id },
-    process.env.REFRESH_TOKEN_SECRET || "refresh_secret",
+    process.env.JWT_SECRET,
     { expiresIn: "7d" }
   );
 
@@ -19,8 +19,6 @@ const generateTokens = (user) => {
 };
 
 const setCookies = (res, accessToken, refreshToken) => {
-  // Use environment variable or check if we are NOT on localhost
-  const isProduction = process.env.NODE_ENV === "production";
   
   const cookieOptions = {
     httpOnly: true,
@@ -28,12 +26,6 @@ const setCookies = (res, accessToken, refreshToken) => {
     sameSite: "none", // Required for cross-site cookies on Vercel
     maxAge: 15 * 60 * 1000,
   };
-
-  // For local development, we might need lax if not using HTTPS
-  if (!isProduction) {
-    cookieOptions.secure = false;
-    cookieOptions.sameSite = "lax";
-  }
 
   res.cookie("accessToken", accessToken, cookieOptions);
   res.cookie("refreshToken", refreshToken, {
@@ -138,7 +130,7 @@ const refresh = async (req, res) => {
   try {
     const decoded = jwt.verify(
       refreshToken,
-      process.env.REFRESH_TOKEN_SECRET || "refresh_secret",
+      process.env.JWT_SECRET,
     );
     const user = await User.findById(decoded.id);
     if (!user) return res.status(401).json({ message: "User not found" });
