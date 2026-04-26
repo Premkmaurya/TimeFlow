@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const path = require("path");
 
 const passport = require("passport");
 
@@ -43,6 +44,14 @@ app.use(passport.initialize());
 // ✅ good
 app.get("/health", (req, res) => {
   res.send("OK");
+});
+
+// Serve static files
+app.use(express.static(path.join(__dirname, "public")));
+
+// Catch-all route
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 app.use((err, req, res, next) => {
