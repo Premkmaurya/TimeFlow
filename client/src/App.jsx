@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import PublicLayout from './components/PublicLayout';
 import Layout from './components/Layout';
 import Home from './pages/Home';
@@ -37,8 +37,8 @@ function App() {
         </Route>
 
         {/* Auth Routes (no navbar) */}
-        <Route path="login" element={<Login />} />
-        <Route path="register" element={<Register />} />
+        <Route path="login" element={user ? <Navigate to={user.role === 'employee' ? "/dashboard" : "/authority"} replace /> : <Login />} />
+        <Route path="register" element={user ? <Navigate to={user.role === 'employee' ? "/dashboard" : "/authority"} replace /> : <Register />} />
 
         {/* Authenticated Routes */}
         <Route path="/" element={<Layout />}>

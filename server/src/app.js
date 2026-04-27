@@ -12,11 +12,7 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const app = express();
 app.set("trust proxy", 1);
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://time-flow-theta.vercel.app",
-];
-
+const allowedOrigins = ["http://localhost:5173", "http://localhost:5000"];
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -34,6 +30,8 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use(express.static(path.join(__dirname, "../public")));
+
 app.use("/api/auth", authRoutes);
 app.use("/api/overtime", overtimeRoutes);
 app.use("/api/notifications", notificationRoutes);
@@ -47,11 +45,9 @@ app.get("/health", (req, res) => {
 });
 
 // Serve static files
-app.use(express.static(path.join(__dirname, "public")));
 
-// Catch-all route
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+app.get("*name", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 
 app.use((err, req, res, next) => {

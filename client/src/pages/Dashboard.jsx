@@ -120,7 +120,7 @@ export default function Dashboard() {
   const onLogout = () => {
     dispatch(logout());
     dispatch(authReset());
-    navigate("/login");
+    navigate("/");
   };
   /* ── End original logic ── */
 

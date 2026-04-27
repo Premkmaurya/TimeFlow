@@ -61,7 +61,7 @@ export default function Register() {
     setError("");
     try {
       await axios.post(
-        "https://timeflow-8vhk.onrender.com/api/auth/register",
+        "http://localhost:5000/api/auth/register",
         formData,
         {
           withCredentials: true,
@@ -577,7 +577,7 @@ export default function Register() {
               type="button"
               onClick={() =>
                 (window.location.href =
-                  "https://timeflow-8vhk.onrender.com/api/auth/google")
+                  "http://localhost:5000/api/auth/google")
               }
               style={{
                 width: "100%",
