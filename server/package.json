@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "npx nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "cd ../client && npm install && npm run build && cd ../server && rm -rf public && cp -r ../client/dist public || xcopy /E /I /Y ..\\client\\dist public\\"
   },
   "keywords": [],
   "author": "",

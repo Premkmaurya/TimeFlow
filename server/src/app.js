@@ -30,7 +30,6 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(express.static(path.join(__dirname, "../public")));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/overtime", overtimeRoutes);
@@ -44,7 +43,9 @@ app.get("/health", (req, res) => {
   res.send("OK");
 });
 
+
 // Serve static files
+app.use(express.static(path.join(__dirname, "../public")));
 
 app.get("*name", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
