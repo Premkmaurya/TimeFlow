@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const path = require("path");
 
 const passport = require("passport");
 
@@ -12,7 +11,7 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const app = express();
 app.set("trust proxy", 1);
 
-const allowedOrigins = ["http://localhost:5173", "http://localhost:5000"];
+const allowedOrigins = ["http://localhost:5173", "http://localhost:5000",'https://time-flow-theta.vercel.app'];
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -43,13 +42,6 @@ app.get("/health", (req, res) => {
   res.send("OK");
 });
 
-
-// Serve static files
-app.use(express.static(path.join(__dirname, "../public")));
-
-app.get("*name", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/index.html"));
-});
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
