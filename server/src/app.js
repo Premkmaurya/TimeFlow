@@ -1,8 +1,11 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 
 const passport = require("passport");
+const { Strategy: GoogleStrategy } = require('passport-google-oauth20');
+
 
 const authRoutes = require("./routes/authRoutes");
 const overtimeRoutes = require("./routes/overtimeRoutes");
@@ -43,8 +46,16 @@ app.use("/api/auth", authRoutes);
 app.use("/api/overtime", overtimeRoutes);
 app.use("/api/notifications", notificationRoutes);
 
-require("./config/passport");
 app.use(passport.initialize());
+
+// Configure Passport to use Google OAuth 2.0 strategy
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: 'https://timeflow-p7wi.onrender.com/auth/google/callback',
+}, (accessToken, refreshToken, profile, done) => {
+  return done(null, profile);
+}));
 
 // ✅ good
 app.get("/health", (req, res) => {
