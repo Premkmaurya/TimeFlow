@@ -2,7 +2,6 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 
-
 const register = async (req, res) => {
   const { firstName, lastName, email, password, role } = req.body;
   try {
@@ -22,19 +21,23 @@ const register = async (req, res) => {
       role: role || "employee",
     });
 
-    const token = jwt.sign({
-      id: newUser._id,
-      role: newUser.role,
-      email: newUser.email,
-    }, process.env.JWT_SECRET, { expiresIn: "7d"});
+    const token = jwt.sign(
+      {
+        id: newUser._id,
+        role: newUser.role,
+        email: newUser.email,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" },
+    );
 
     res.cookie("token", token, {
       httpOnly: true,
       secure: true,
       sameSite: "None",
       maxAge: 7 * 24 * 60 * 60 * 1000,
-    })
-  
+    });
+
     res.status(201).json({
       message: "User registered successfully",
       token,
@@ -53,6 +56,7 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   const { email, password } = req.body;
+
   try {
     const user = await User.findOne({ email });
     if (!user) {
@@ -60,7 +64,9 @@ const login = async (req, res) => {
     }
 
     if (!user.password) {
-        return res.status(400).json({ message: "This account was created with Google. Please use Google Login." });
+      return res.status(400).json({
+        message: "This account was created with Google. Please use Google Login.",
+      });
     }
 
     const validPassword = await bcrypt.compare(password, user.password);
@@ -68,12 +74,13 @@ const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials." });
     }
 
-    const token = jwt.sign({
-      id: user._id,
-      role: user.role,
-      email: user.email,
-    }, process.env.JWT_SECRET, { expiresIn: "7d"});
-
+    // 🔥 Access Token (short-lived)
+    const token = jwt.sign(
+      { id: user._id, role: user.role, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+    // ✅ Store ONLY refresh token in cookie
     res.cookie("token", token, {
       httpOnly: true,
       secure: true,
@@ -81,8 +88,8 @@ const login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
+    // ✅ Send access token in response
     res.status(200).json({
-      token,
       user: {
         id: user._id,
         firstName: user.firstName,
@@ -90,6 +97,7 @@ const login = async (req, res) => {
         role: user.role,
       },
     });
+
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }
@@ -110,37 +118,6 @@ const getMe = async (req, res) => {
 const logout = async (req, res) => {
   res.clearCookie("token");
   res.status(200).json({ message: "Logged out successfully" });
-};
-
-const refresh = async (req, res) => {
-  const token = req.cookies.token;
-  if (!token)
-    return res.status(401).json({ message: "No token" });
-
-  try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET,
-    );
-    const user = await User.findById(decoded.id);
-    if (!user) return res.status(401).json({ message: "User not found" });
-
-    const newToken = jwt.sign(
-      { id: user._id, role: user.role, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" },
-    );
-    res.cookie("token", newToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "None",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
-    res.status(200).json({ message: "Token refreshed", token: newToken });
-  } catch (err) {
-    res.status(401).json({ message: "Invalid refresh token" });
-  }
 };
 
 const googleCallback = async (req, res) => {
@@ -194,4 +171,4 @@ const googleCallback = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getMe, logout, refresh, googleCallback };
+module.exports = { register, login, getMe, logout, googleCallback };

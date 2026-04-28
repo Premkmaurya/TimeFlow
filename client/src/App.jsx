@@ -15,7 +15,7 @@ import Dashboard from "./pages/Dashboard";
 import AuthorityPanel from "./pages/AuthorityPanel";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getMe } from "./features/auth/authSlice";
+import { fetchCurrentUser as getMe } from "./features/auth/authSlice";
 import OAuthSuccess from "./pages/OAuthSuccessPage";
 
 function App() { 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
-import { login, reset } from "../features/auth/authSlice";
+import { loginUser as login, clearError as reset } from "../features/auth/authSlice";
 import { motion } from "framer-motion";
 import {
   LogIn,
@@ -56,9 +56,13 @@ export default function Login() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { user, isLoading, isError, isSuccess, message } = useSelector(
+  const { user, loading: isLoading, error: isError } = useSelector(
     (state) => state.auth,
   );
+  
+  const message = isError; // Map new error property to message
+  const isSuccess = user !== null; // Map new success state
+
 
   useEffect(() => {
     if (isError) console.error(message);

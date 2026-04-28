@@ -11,7 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { logout, reset as authReset } from "../features/auth/authSlice";
+import { logoutUser as logout, clearError as authReset } from "../features/auth/authSlice";
 import OvertimeFormModal from "../components/dashboard/OvertimeFormModal";
 
 /* ─── Design tokens (Luminous Efficiency) ────── */

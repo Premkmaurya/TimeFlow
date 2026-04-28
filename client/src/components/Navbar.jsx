@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { logout, reset } from "../features/auth/authSlice";
+import { logoutUser as logout, clearError as reset } from "../features/auth/authSlice";
 import { Clock, Bell } from "lucide-react";
 import { selectUnreadCount } from "../features/notifications/notificationSlice";
 

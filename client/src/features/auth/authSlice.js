@@ -1,108 +1,135 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axiosInstance from "../../api/axios";
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { loginApi, registerApi, fetchCurrentApi, logoutApi } from './authApi';
 
-const API_URL = "/auth";
-
-// Configure axios to send cookies
-axiosInstance.defaults.withCredentials = true;
-
-const user = JSON.parse(localStorage.getItem("user"));
-
-export const login = createAsyncThunk(
-  "auth/login",
+// Thunks
+export const registerUser = createAsyncThunk(
+  'auth/registerUser',
   async (userData, thunkAPI) => {
     try {
-      const response = await axiosInstance.post(`${API_URL}/login`, userData);
-      if (response.data) {
-        localStorage.setItem("user", JSON.stringify(response.data.user));
-        if (response.data.token) {
-          localStorage.setItem("token", response.data.token);
-        }
-      }
-      return response.data;
+      const data = await registerApi(userData);
+      return data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.message || error.message,
-      );
+      return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
     }
-  },
+  }
 );
 
-export const getMe = createAsyncThunk("auth/getMe", async (_, thunkAPI) => {
-  try {
-    const response = await axiosInstance.get(`${API_URL}/get-user`);
-    return response.data;
-  } catch (error) {
-    return thunkAPI.rejectWithValue(
-      error.response?.data?.message || error.message,
-    );
+export const loginUser = createAsyncThunk(
+  'auth/loginUser',
+  async (credentials, thunkAPI) => {
+    try {
+      const data = await loginApi(credentials);
+      return data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.message || 'Login failed');
+    }
   }
-});
+);
 
-export const logout = createAsyncThunk("auth/logout", async (_, thunkAPI) => {
-  try {
-    // Tell the server to blacklist the token in Redis and clear the cookie
-    await axiosInstance.post(`${API_URL}/logout`);
-  } catch (error) {
-    // Even if the server call fails, we still clear local state
-    console.warn("[Auth] Logout API error:", error.message);
+export const fetchCurrentUser = createAsyncThunk(
+  'auth/fetchCurrentUser',
+  async (_, thunkAPI) => {
+    try {
+      const data = await fetchCurrentApi();
+      return data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to fetch user');
+    }
   }
-  localStorage.removeItem("user");
-  localStorage.removeItem("token");
-});
+);
+
+export const logoutUser = createAsyncThunk(
+  'auth/logoutUser',
+  async (_, thunkAPI) => {
+    try {
+      await logoutApi();
+      return null;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to logout');
+    }
+  }
+);
+
+const initialState = {
+  user: null,
+  loading: false,
+  error: null,
+};
 
 const authSlice = createSlice({
-  name: "auth",
-  initialState: {
-    user: user ? user : null,
-    isError: false,
-    isSuccess: false,
-    isLoading: false,
-    message: "",
-  },
+  name: 'auth',
+  initialState,
   reducers: {
-    reset: (state) => {
-      state.isLoading = false;
-      state.isSuccess = false;
-      state.isError = false;
-      state.message = "";
+    clearError: (state) => {
+      state.error = null;
     },
+    // We can manually set the user if reading from local storage on app load
+    setUser: (state, action) => {
+      state.user = action.payload;
+    }
   },
   extraReducers: (builder) => {
     builder
-      .addCase(login.pending, (state) => {
-        state.isLoading = true;
+      // Register
+      .addCase(registerUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
       })
-      .addCase(login.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isSuccess = true;
-        state.user = action.payload.user;
+      .addCase(registerUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user || action.payload; // Handle depending on backend shape
       })
-      .addCase(login.rejected, (state, action) => {
-        state.isLoading = false;
-        state.isError = true;
-        state.message = action.payload;
+      .addCase(registerUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      
+      // Login
+      .addCase(loginUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(loginUser.fulfilled, (state, action) => {
+        state.loading = false;
+        // Assuming backend returns { user, token } or similar
+        state.user = action.payload.user || action.payload;
+      })
+      .addCase(loginUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Fetch Current User
+      .addCase(fetchCurrentUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCurrentUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user || action.payload;
+      })
+      .addCase(fetchCurrentUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Logout
+      .addCase(logoutUser.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.loading = false;
         state.user = null;
       })
-      .addCase(getMe.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(getMe.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isSuccess = true;
-        state.user = action.payload;
-      })
-      .addCase(getMe.rejected, (state, action) => {
-        state.isLoading = false;
-        state.isError = true;
-        state.message = action.payload;
+      .addCase(logoutUser.rejected, (state, action) => {
+        // Even if the backend fails, we usually want to clear the local state
+        state.loading = false;
         state.user = null;
-      })
-      .addCase(logout.fulfilled, (state) => {
-        state.user = null;
+        state.error = action.payload;
       });
   },
 });
 
-export const { reset } = authSlice.actions;
+export const { clearError, setUser } = authSlice.actions;
+
 export default authSlice.reducer;

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { registerUser, clearError } from "../features/auth/authSlice";
 import { motion } from "framer-motion";
 import { UserPlus, Clock, Users, TrendingUp, Eye, EyeOff } from "lucide-react";
 
@@ -49,30 +50,25 @@ export default function Register() {
   const { firstName, lastName, email, password, role } = formData;
 
   const navigate = useNavigate();
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  
+  const { user, loading, error } = useSelector((state) => state.auth);
+
+
+  useEffect(() => {
+    if (user) {
+      if (user.role === "employee") navigate("/dashboard");
+      else navigate("/authority");
+    }
+    dispatch(clearError());
+  }, [user, navigate, dispatch]);
 
   const onChange = (e) =>
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
-  const onSubmit = async (e) => {
+  const onSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
-    try {
-      await axios.post(
-        import.meta.env.VITE_API_URL + "/auth/register",
-        formData,
-        {
-          withCredentials: true,
-        },
-      );
-      navigate("/login");
-    } catch (err) {
-      setError(err.response?.data?.message || err.message);
-    } finally {
-      setLoading(false);
-    }
+    dispatch(registerUser(formData));
   };
   /* ── end original logic ── */
 

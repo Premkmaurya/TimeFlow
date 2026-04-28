@@ -7,7 +7,7 @@ import {
   approveRequest,
   rejectRequest,
 } from "../features/overtime/overtimeSlice";
-import { logout, reset as authReset } from "../features/auth/authSlice";
+import { logoutUser as logout, clearError as authReset } from "../features/auth/authSlice";
 import {
   Users,
   LogOut,
