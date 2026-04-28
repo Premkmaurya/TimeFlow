@@ -2,37 +2,6 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 
-const generateTokens = (user) => {
-  const accessToken = jwt.sign(
-    { id: user._id, role: user.role, email: user.email },
-    process.env.JWT_SECRET,
-    { expiresIn: "15m" }
-  );
-
-  const refreshToken = jwt.sign(
-    { id: user._id },
-    process.env.JWT_SECRET,
-    { expiresIn: "7d" }
-  );
-
-  return { accessToken, refreshToken };
-};
-
-const setCookies = (res, accessToken, refreshToken) => {
-  
-  const cookieOptions = {
-    httpOnly: true,
-    secure: true, // Always true for HTTPS (Vercel)
-    sameSite: "None", // Required for cross-site cookies on Vercel
-    maxAge: 15 * 60 * 1000,
-  };
-
-  res.cookie("accessToken", accessToken, cookieOptions);
-  res.cookie("refreshToken", refreshToken, {
-    ...cookieOptions,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
-};
 
 const register = async (req, res) => {
   const { firstName, lastName, email, password, role } = req.body;
@@ -53,9 +22,19 @@ const register = async (req, res) => {
       role: role || "employee",
     });
 
-    const { accessToken, refreshToken } = generateTokens(newUser);
-    setCookies(res, accessToken, refreshToken);
+    const token = jwt.sign({
+      id: newUser._id,
+      role: newUser.role,
+      email: newUser.email,
+    }, process.env.JWT_SECRET, { expiresIn: "7d"});
 
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
+  
     res.status(201).json({
       message: "User registered successfully",
       user: {
@@ -88,8 +67,18 @@ const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials." });
     }
 
-    const { accessToken, refreshToken } = generateTokens(user);
-    setCookies(res, accessToken, refreshToken);
+    const token = jwt.sign({
+      id: user._id,
+      role: user.role,
+      email: user.email,
+    }, process.env.JWT_SECRET, { expiresIn: "7d"});
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
     res.status(200).json({
       user: {
@@ -117,31 +106,34 @@ const getMe = async (req, res) => {
 };
 
 const logout = async (req, res) => {
-  res.clearCookie("accessToken");
-  res.clearCookie("refreshToken");
+  res.clearCookie("token");
   res.status(200).json({ message: "Logged out successfully" });
 };
 
 const refresh = async (req, res) => {
-  const refreshToken = req.cookies.refreshToken;
-  if (!refreshToken)
-    return res.status(401).json({ message: "No refresh token" });
+  const token = req.cookies.token;
+  if (!token)
+    return res.status(401).json({ message: "No token" });
 
   try {
     const decoded = jwt.verify(
-      refreshToken,
+      token,
       process.env.JWT_SECRET,
     );
     const user = await User.findById(decoded.id);
     if (!user) return res.status(401).json({ message: "User not found" });
 
-    const accessToken = jwt.sign(
+    const token = jwt.sign(
       { id: user._id, role: user.role, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: "15m" },
+      { expiresIn: "7d" },
     );
-
-    setCookies(res, accessToken, refreshToken);
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
     res.status(200).json({ message: "Token refreshed" });
   } catch (err) {
@@ -149,18 +141,47 @@ const refresh = async (req, res) => {
   }
 };
 
-const googleCallback = (req, res) => {
+const googleCallback = async (req, res) => {
   try {
-    const { accessToken, refreshToken } = generateTokens(req.user);
-    setCookies(res, accessToken, refreshToken);
-    
-    // Redirect to frontend dashboard
-    const frontendUrl = "http://localhost:5000";
-    res.redirect(`${frontendUrl}/dashboard`);
-  } catch (err) {
-    console.log(err);
-    const frontendUrl = "http://localhost:5000";
-    res.redirect(`${frontendUrl}/login?error=auth_failed`);
+    const user = req.user;
+
+    const isUserExists = await User.findOne({
+      $or: [{ googleId: user.id }, { email: user.emails[0].value }],
+    });
+
+    let userData;
+
+    if (!isUserExists) {
+      const newUser = new User({
+        googleId: user.id,
+        firstName: user.name.givenName,
+        lastName: user.name.familyName,
+        email: user.emails[0].value,
+      });
+      await newUser.save();
+      userData = newUser;
+    } else {
+      userData = isUserExists;
+    }
+    const token = jwt.sign(
+      {
+        id: userData._id,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
+        role: userData.role,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" },
+    );
+
+    res.redirect(
+      `https://time-flow-theta.vercel.app/dashboard`,
+    );
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Google authentication failed", error });
   }
 };
 
