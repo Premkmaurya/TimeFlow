@@ -17,11 +17,22 @@ function App() {
   const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
+    // Check for token in URL (from Google OAuth redirect)
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    if (token) {
+      localStorage.setItem('token', token);
+      // Clean up the URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      // After storing token, fetch user info
+      dispatch(getMe());
+    }
+
     // Prevent getMe from running on public pages to avoid unnecessary 401s for guests
     const publicPaths = ['/', '/login', '/register', '/about', '/contact'];
     const isPublicPath = publicPaths.includes(window.location.pathname);
 
-    if (!user && !isPublicPath) {
+    if (!user && !isPublicPath && !token) {
       dispatch(getMe());
     }
   }, [dispatch, user]);

@@ -37,6 +37,7 @@ const register = async (req, res) => {
   
     res.status(201).json({
       message: "User registered successfully",
+      token,
       user: {
         id: newUser._id,
         firstName: newUser.firstName,
@@ -81,6 +82,7 @@ const login = async (req, res) => {
     });
 
     res.status(200).json({
+      token,
       user: {
         id: user._id,
         firstName: user.firstName,
@@ -123,19 +125,19 @@ const refresh = async (req, res) => {
     const user = await User.findById(decoded.id);
     if (!user) return res.status(401).json({ message: "User not found" });
 
-    const token = jwt.sign(
+    const newToken = jwt.sign(
       { id: user._id, role: user.role, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
     );
-    res.cookie("token", token, {
+    res.cookie("token", newToken, {
       httpOnly: true,
       secure: true,
       sameSite: "None",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.status(200).json({ message: "Token refreshed" });
+    res.status(200).json({ message: "Token refreshed", token: newToken });
   } catch (err) {
     res.status(401).json({ message: "Invalid refresh token" });
   }
@@ -172,11 +174,18 @@ const googleCallback = async (req, res) => {
         role: userData.role,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" },
+      { expiresIn: "7d" },
     );
 
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
     res.redirect(
-      `https://time-flow-theta.vercel.app/dashboard`,
+      `${process.env.FRONTEND_URL || "http://localhost:5173"}/dashboard`,
     );
   } catch (error) {
     return res

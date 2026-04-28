@@ -15,6 +15,9 @@ export const login = createAsyncThunk(
       const response = await axiosInstance.post(`${API_URL}/login`, userData);
       if (response.data) {
         localStorage.setItem("user", JSON.stringify(response.data.user));
+        if (response.data.token) {
+          localStorage.setItem("token", response.data.token);
+        }
       }
       return response.data;
     } catch (error) {
@@ -45,6 +48,7 @@ export const logout = createAsyncThunk("auth/logout", async (_, thunkAPI) => {
     console.warn("[Auth] Logout API error:", error.message);
   }
   localStorage.removeItem("user");
+  localStorage.removeItem("token");
 });
 
 const authSlice = createSlice({
