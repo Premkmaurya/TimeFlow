@@ -1,4 +1,4 @@
-// src/pages/OAuthSuccess.jsx
+// src/pages/OAuthSuccessPage.jsx
 
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";

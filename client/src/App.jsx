@@ -16,9 +16,9 @@ import AuthorityPanel from "./pages/AuthorityPanel";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getMe } from "./features/auth/authSlice";
-import OAuthSuccess from "./pages/Oauthsuccess";
+import OAuthSuccess from "./pages/OAuthSuccessPage";
 
-function App() {
+function App() { 
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
 
