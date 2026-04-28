@@ -1,35 +1,32 @@
 import axios from "axios";
 
-axios.defaults.withCredentials = true;
-
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
-  withCredentials: true,
+  withCredentials: true, // for refresh token cookie
 });
 
-// Request interceptor to add Authorization header
+// ✅ REQUEST INTERCEPTOR
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("accessToken"); // 🔥 consistent name
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  },
+  (error) => Promise.reject(error),
 );
 
-// Response interceptor for automatic token refresh
+// ✅ RESPONSE INTERCEPTOR (AUTO REFRESH)
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // If error is 401 and not already retried
     const isAuthPath =
       originalRequest.url.includes("/login") ||
       originalRequest.url.includes("/register");
@@ -42,30 +39,37 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        // Attempt to refresh token
-        const response = await axios.post(
+        // 🔥 refresh token (cookie-based)
+        const res = await axios.post(
           `${API_URL}/auth/refresh`,
           {},
-          { withCredentials: true },
+          { withCredentials: true }
         );
 
-        // If refresh returns a new token, update it
-        if (response.data.token) {
-          localStorage.setItem("token", response.data.token);
+        const newAccessToken = res.data.accessToken;
+
+        if (newAccessToken) {
+          // 🔥 update token
+          localStorage.setItem("accessToken", newAccessToken);
+
+          // 🔥 retry original request with new token
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         }
 
-        // Retry the original request
         return axiosInstance(originalRequest);
       } catch (refreshError) {
-        // Refresh failed - logout user
+        // ❌ logout
+        localStorage.removeItem("accessToken");
         localStorage.removeItem("user");
-        localStorage.removeItem("token");
+
+        window.location.href = "/login"; // redirect
+
         return Promise.reject(refreshError);
       }
     }
 
     return Promise.reject(error);
-  },
+  }
 );
 
 export default axiosInstance;

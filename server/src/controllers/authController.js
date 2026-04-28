@@ -185,7 +185,7 @@ const googleCallback = async (req, res) => {
     });
 
     res.redirect(
-      `${process.env.FRONTEND_URL || "http://localhost:5173"}/dashboard`,
+      `${process.env.FRONTEND_URL || "http://localhost:5173"}/oauth-success?token=${token}`,
     );
   } catch (error) {
     return res
