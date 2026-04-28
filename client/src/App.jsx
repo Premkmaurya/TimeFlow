@@ -23,23 +23,18 @@ function App() {
   const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    // Check for token in URL (from Google OAuth redirect)
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get("token");
-    if (token) {
-      localStorage.setItem("token", token);
-      // Clean up the URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-      // After storing token, fetch user info
-      dispatch(getMe());
-    }
-
-    // Prevent getMe from running on public pages to avoid unnecessary 401s for guests
-    const publicPaths = ["/", "/login", "/register", "/about", "/contact"];
+    const publicPaths = ["/", "/login", "/register", "/about", "/contact", "/oauth-success"];
     const isPublicPath = publicPaths.includes(window.location.pathname);
+    const token = localStorage.getItem("token");
 
-    if (!user && !isPublicPath && !token) {
-      dispatch(getMe());
+    if (!user) {
+      if (token) {
+        // Auto-login: If token exists, fetch user
+        dispatch(getMe());
+      } else if (!isPublicPath) {
+        // If no token and on a private path, attempt to fetch (which will fail and can be handled)
+        dispatch(getMe());
+      }
     }
   }, [dispatch, user]);
 
