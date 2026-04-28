@@ -117,8 +117,8 @@ export default function Dashboard() {
     }
   };
 
-  const onLogout = () => {
-    dispatch(logout());
+  const onLogout = async () => {
+    await dispatch(logout());
     dispatch(authReset());
     navigate("/");
   };

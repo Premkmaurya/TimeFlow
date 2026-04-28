@@ -10,8 +10,8 @@ const Navbar = () => {
   const { user } = useSelector((state) => state.auth);
   const unreadCount = useSelector(selectUnreadCount);
 
-  const onLogout = () => {
-    dispatch(logout());
+  const onLogout = async () => {
+    await dispatch(logout());
     dispatch(reset());
     navigate("/login");
   };

@@ -111,8 +111,8 @@ export default function AuthorityPanel() {
   const handleApprove = (reqId) => dispatch(approveRequest(reqId));
   const handleReject = (reqId) => dispatch(rejectRequest(reqId));
 
-  const onLogout = () => {
-    dispatch(logout());
+  const onLogout = async () => {
+    await dispatch(logout());
     dispatch(authReset());
     navigate("/login");
   };
