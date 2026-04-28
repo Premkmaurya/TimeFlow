@@ -77,6 +77,9 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
+        if (action.payload.token) {
+          localStorage.setItem("token", action.payload.token);
+        }
         state.user = action.payload.user || action.payload; // Handle depending on backend shape
       })
       .addCase(registerUser.rejected, (state, action) => {
@@ -92,6 +95,9 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
         // Assuming backend returns { user, token } or similar
+        if (action.payload.token) {
+          localStorage.setItem("token", action.payload.token);
+        }
         state.user = action.payload.user || action.payload;
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -120,6 +126,7 @@ const authSlice = createSlice({
       .addCase(logoutUser.fulfilled, (state) => {
         state.loading = false;
         state.user = null;
+        localStorage.removeItem("token");
       })
       .addCase(logoutUser.rejected, (state, action) => {
         // Even if the backend fails, we usually want to clear the local state

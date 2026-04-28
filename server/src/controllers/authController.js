@@ -90,6 +90,7 @@ const login = async (req, res) => {
 
     // ✅ Send access token in response
     res.status(200).json({
+      token,
       user: {
         id: user._id,
         firstName: user.firstName,
